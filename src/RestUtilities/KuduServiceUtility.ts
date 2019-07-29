@@ -62,7 +62,7 @@ export class KuduServiceUtility {
             console.log('Package deployment using ZIP Deploy initiated.');
 
             let queryParameters: Array<string> = [
-                'deployer=' +   GITHUB_DEPLOY
+                'deployer=' +  GITHUB_DEPLOY
             ];
 
             var deploymentMessage = this._getUpdateHistoryRequest(null, null, customMessage).message;

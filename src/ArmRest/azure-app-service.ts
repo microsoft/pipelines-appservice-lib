@@ -42,6 +42,33 @@ export class AzureAppService {
         return this._appServiceConfigurationDetails;
     }
 
+    public async restart(): Promise<void> {
+        try {            
+            var slotUrl: string = !!this._slot ? `/slots/${this._slot}` : '';
+            var webRequest: webClient.WebRequest = {
+                method: 'POST',
+                uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{ResourceGroupName}/providers/Microsoft.Web/sites/{name}/${slotUrl}/restart`, {
+                    '{ResourceGroupName}': this._resourceGroup,
+                    '{name}': this._name
+                }, null, '2016-08-01')
+            };
+
+            console.log("Restarting app service: " + this._getFormattedName());
+            var response = await this._client.beginRequest(webRequest);
+            if(response.statusCode != 200) {
+                throw ToError(response);
+            }
+
+            console.log("Restarted app service: " + this._getFormattedName());
+        }
+        catch(error) {
+            if(error && error.message && typeof error.message.valueOf() == 'string') {
+                error.message = "Failed to restart app service " + this._getFormattedName() + ".\n" + error.message;
+            }
+            throw error;
+        }
+    }
+
     public async getPublishingProfileWithSecrets(force?: boolean): Promise<any>{
         if(force || !this._appServicePublishingProfile) {
             this._appServicePublishingProfile = await this._getPublishingProfileWithSecrets();
