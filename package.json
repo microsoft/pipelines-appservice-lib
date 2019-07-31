@@ -25,7 +25,6 @@
     "typescript": "^3.5.3"
   },
   "dependencies": {
-    "@actions/core": "file:toolkit/actions-core-0.0.0.tgz",
     "archiver": "1.2.0",
     "decompress-zip": "0.3.2",
     "minimatch": "^3.0.0",

@@ -1,4 +1,3 @@
-import * as core from '@actions/core';
 import child = require('child_process');
 import path = require('path');
 import events = require('events');
@@ -23,9 +22,9 @@ export function _checkShell(cmd: string, continueOnError?: boolean) {
     var se = shell.error();
 
     if (se) {
-        core.debug(cmd + ' failed');
+        console.log("##[debug]" + cmd + ' failed');
         var errMsg = 'Failed ' + cmd + ': ' + se;
-        core.debug(errMsg);
+        console.log("##[debug]" + errMsg);
 
         if (!continueOnError) {
             throw new Error(errMsg);
@@ -45,12 +44,12 @@ export function mkdirP(p: string): void {
         // validate the loop is not out of control
         if (stack.length >= (process.env['TASKLIB_TEST_MKDIRP_FAILSAFE'] || 1000)) {
             // let the framework throw
-            core.debug('loop is out of control');
+            console.log('##[debug]loop is out of control');
             fs.mkdirSync(p);
             return;
         }
 
-        core.debug(`testing directory '${testDir}'`);
+        console.log(`##[debug]testing directory '${testDir}'`);
         let stats: fs.Stats;
         try {
             stats = fs.statSync(testDir);
@@ -86,7 +85,7 @@ export function mkdirP(p: string): void {
     // create each directory
     while (stack.length) {
         let dir = stack.pop()!; // non-null because `stack.length` was truthy
-        core.debug(`mkdir '${dir}'`);
+        console.log(`##[debug]mkdir '${dir}'`);
         try {
             fs.mkdirSync(dir);
         } catch (err) {
@@ -97,7 +96,7 @@ export function mkdirP(p: string): void {
 
 export function find(findPath: string): string[] {
     if (!findPath) {
-        core.debug('no path specified');
+        console.log('##[debug]no path specified');
         return [];
     }
 
@@ -106,7 +105,7 @@ export function find(findPath: string): string[] {
     findPath = path.normalize(findPath);
 
     // debug trace the parameters
-    core.debug(`findPath: '${findPath}'`);
+    console.log(`##[debug]findPath: '${findPath}'`);
 
     // return empty if not exists
     try {
@@ -114,7 +113,7 @@ export function find(findPath: string): string[] {
     }
     catch (err) {
         if (err.code == 'ENOENT') {
-            core.debug('0 results')
+            console.log('##[debug]0 results')
             return [];
         }
 
@@ -143,7 +142,7 @@ export function find(findPath: string): string[] {
 
             // note, isDirectory() returns false for the lstat of a symlink
             if (stats.isDirectory()) {
-                core.debug(`  ${item.path} (directory)`);
+                console.log(`##[debug]  ${item.path} (directory)`);
 
                 // push the child items in reverse onto the stack
                 let childLevel: number = item.level + 1;
@@ -155,11 +154,11 @@ export function find(findPath: string): string[] {
                 }
             }
             else {
-                core.debug(`  ${item.path} (file)`);
+                console.log(`##[debug]  ${item.path} (file)`);
             }
         }
 
-        core.debug(`${result.length} results`);
+        console.log(`##[debug]${result.length} results`);
         return result;
     }
     catch (err) {
@@ -208,22 +207,22 @@ function _getDefaultMatchOptions(): MatchOptions {
 }
 
 function _debugMatchOptions(options: MatchOptions): void {
-    core.debug(`matchOptions.debug: '${options.debug}'`);
-    core.debug(`matchOptions.nobrace: '${options.nobrace}'`);
-    core.debug(`matchOptions.noglobstar: '${options.noglobstar}'`);
-    core.debug(`matchOptions.dot: '${options.dot}'`);
-    core.debug(`matchOptions.noext: '${options.noext}'`);
-    core.debug(`matchOptions.nocase: '${options.nocase}'`);
-    core.debug(`matchOptions.nonull: '${options.nonull}'`);
-    core.debug(`matchOptions.matchBase: '${options.matchBase}'`);
-    core.debug(`matchOptions.nocomment: '${options.nocomment}'`);
-    core.debug(`matchOptions.nonegate: '${options.nonegate}'`);
-    core.debug(`matchOptions.flipNegate: '${options.flipNegate}'`);
+    console.log(`##[debug]matchOptions.debug: '${options.debug}'`);
+    console.log(`##[debug]matchOptions.nobrace: '${options.nobrace}'`);
+    console.log(`##[debug]matchOptions.noglobstar: '${options.noglobstar}'`);
+    console.log(`##[debug]matchOptions.dot: '${options.dot}'`);
+    console.log(`##[debug]matchOptions.noext: '${options.noext}'`);
+    console.log(`##[debug]matchOptions.nocase: '${options.nocase}'`);
+    console.log(`##[debug]matchOptions.nonull: '${options.nonull}'`);
+    console.log(`##[debug]matchOptions.matchBase: '${options.matchBase}'`);
+    console.log(`##[debug]matchOptions.nocomment: '${options.nocomment}'`);
+    console.log(`##[debug]matchOptions.nonegate: '${options.nonegate}'`);
+    console.log(`##[debug]matchOptions.flipNegate: '${options.flipNegate}'`);
 }
 
 export function match(list: string[], patterns: string[] | string, patternRoot?: string, options?: MatchOptions): string[] {
     // trace parameters
-    core.debug(`patternRoot: '${patternRoot}'`);
+    console.log(`##[debug]patternRoot: '${patternRoot}'`);
     options = options || _getDefaultMatchOptions(); // default match options
     _debugMatchOptions(options);
 
@@ -237,12 +236,12 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
 
     let originalOptions = options;
     for (let pattern of patterns) {
-        core.debug(`pattern: '${pattern}'`);
+        console.log(`##[debug]pattern: '${pattern}'`);
 
         // trim and skip empty
         pattern = (pattern || '').trim();
         if (!pattern) {
-            core.debug('skipping empty pattern');
+            console.log('##[debug]skipping empty pattern');
             continue;
         }
 
@@ -251,7 +250,7 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
 
         // skip comments
         if (!options.nocomment && _startsWith(pattern, '#')) {
-            core.debug('skipping comment');
+            console.log('##[debug]skipping comment');
             continue;
         }
 
@@ -267,7 +266,7 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
 
             pattern = pattern.substring(negateCount); // trim leading '!'
             if (negateCount) {
-                core.debug(`trimmed leading '!'. pattern: '${pattern}'`);
+                console.log(`##[debug]trimmed leading '!'. pattern: '${pattern}'`);
             }
         }
 
@@ -288,7 +287,7 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
         else {
             // convert slashes on Windows before calling braceExpand(). unfortunately this means braces cannot
             // be escaped on Windows, this limitation is consistent with current limitations of minimatch (3.0.3).
-            core.debug('expanding braces');
+            console.log('##[debug]expanding braces');
             let convertedPattern = process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern;
             expanded = (minimatch as any).braceExpand(convertedPattern);
         }
@@ -298,13 +297,13 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
 
         for (let pattern of expanded) {
             if (expanded.length != 1 || pattern != preExpanded) {
-                core.debug(`pattern: '${pattern}'`);
+                console.log(`##[debug]pattern: '${pattern}'`);
             }
 
             // trim and skip empty
             pattern = (pattern || '').trim();
             if (!pattern) {
-                core.debug('skipping empty pattern');
+                console.log('##[debug]skipping empty pattern');
                 continue;
             }
 
@@ -315,14 +314,14 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
                 (!options.matchBase || (process.platform == 'win32' ? pattern.replace(/\\/g, '/') : pattern).indexOf('/') >= 0)) {
 
                 pattern = _ensureRooted(patternRoot, pattern);
-                core.debug(`rooted pattern: '${pattern}'`);
+                console.log(`##[debug]rooted pattern: '${pattern}'`);
             }
 
             if (isIncludePattern) {
                 // apply the pattern
-                core.debug('applying include pattern against original list');
+                console.log('##[debug]applying include pattern against original list');
                 let matchResults: string[] = minimatch.match(list, pattern, options);
-                core.debug(matchResults.length + ' matches');
+                console.log("##[debug]" + matchResults.length + ' matches');
 
                 // union the results
                 for (let matchResult of matchResults) {
@@ -331,9 +330,9 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
             }
             else {
                 // apply the pattern
-                core.debug('applying exclude pattern against original list');
+                console.log('##[debug]applying exclude pattern against original list');
                 let matchResults: string[] = minimatch.match(list, pattern, options);
-                core.debug(matchResults.length + ' matches');
+                console.log("##[debug]" + matchResults.length + ' matches');
 
                 // substract the results
                 for (let matchResult of matchResults) {
@@ -345,7 +344,7 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
 
     // return a filtered version of the original list (preserves order and prevents duplication)
     let result: string[] = list.filter((item: string) => map.hasOwnProperty(item));
-    core.debug(result.length + ' final results');
+    console.log("##[debug]" + result.length + ' final results');
     return result;
 }
 
@@ -363,7 +362,7 @@ export function match(list: string[], patterns: string[] | string, patternRoot?:
 export function execSync(tool: string, args: string | string[], options?: IExecSyncOptions): IExecSyncResult {
     let tr: ToolRunner = this.tool(tool);
     tr.on('debug', (data: string) => {
-        core.debug(data);
+        console.log("##[debug]" + data);
     });
 
     if (args) {
@@ -387,7 +386,7 @@ export function execSync(tool: string, args: string | string[], options?: IExecS
 export function tool(tool: string) {
     let tr: ToolRunner = new ToolRunner(tool);
     tr.on('debug', (message: string) => {
-        core.debug(message);
+        console.log("##[debug]" + message);
     })
 
     return tr;
@@ -488,7 +487,7 @@ function _which(tool: string, check?: boolean): string {
         }
     }
 
-    core.debug(`which '${tool}'`);
+    console.log(`##[debug]which '${tool}'`);
     try {
         // build the list of extensions to try
         let extensions: string[] = [];
@@ -504,17 +503,17 @@ function _which(tool: string, check?: boolean): string {
         if (_isRooted(tool)) {
             let filePath: string = _tryGetExecutablePath(tool, extensions);
             if (filePath) {
-                core.debug(`found: '${filePath}'`);
+                console.log(`##[debug]found: '${filePath}'`);
                 return filePath;
             }
 
-            core.debug('not found');
+            console.log('##[debug]not found');
             return '';
         }
 
         // if any path separators, return empty
         if (tool.indexOf('/') >= 0 || (process.platform == 'win32' && tool.indexOf('\\') >= 0)) {
-            core.debug('not found');
+            console.log('##[debug]not found');
             return '';
         }
 
@@ -537,12 +536,12 @@ function _which(tool: string, check?: boolean): string {
         for (let directory of directories) {
             let filePath = _tryGetExecutablePath(directory + path.sep + tool, extensions);
             if (filePath) {
-                core.debug(`found: '${filePath}'`);
+                console.log(`##[debug]found: '${filePath}'`);
                 return filePath;
             }
         }
 
-        core.debug('not found');
+        console.log('##[debug]not found');
         return '';
     }
     catch (err) {
@@ -582,7 +581,7 @@ function _tryGetExecutablePath(filePath: string, extensions: string[]): string {
     }
     catch (err) {
         if (err.code != 'ENOENT') {
-            core.debug(`Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`);
+            console.log(`##[debug]Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`);
         }
     }
 
@@ -607,7 +606,7 @@ function _tryGetExecutablePath(filePath: string, extensions: string[]): string {
                         }
                     }
                     catch (err) {
-                        core.debug(`Unexpected error attempting to determine the actual case of the file '${filePath}': ${err}`);
+                        console.log(`##[debug]Unexpected error attempting to determine the actual case of the file '${filePath}': ${err}`);
                     }
 
                     return filePath;
@@ -621,7 +620,7 @@ function _tryGetExecutablePath(filePath: string, extensions: string[]): string {
         }
         catch (err) {
             if (err.code != 'ENOENT') {
-                core.debug(`Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`);
+                console.log(`##[debug]Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`);
             }
         }
     }
@@ -695,7 +694,7 @@ class ToolRunner extends events.EventEmitter {
 
         this.toolPath = _which(toolPath, true);
         this.args = [];
-        core.debug('toolRunner toolPath: ' + toolPath);
+        console.log('##[debug]toolRunner toolPath: ' + toolPath);
     }
 
     private toolPath: string;
@@ -1101,11 +1100,11 @@ class ToolRunner extends events.EventEmitter {
         }
 
         if (val instanceof Array) {
-            core.debug(this.toolPath + ' arg: ' + JSON.stringify(val));
+            console.log("##[debug]" + this.toolPath + ' arg: ' + JSON.stringify(val));
             this.args = this.args.concat(val);
         }
         else if (typeof (val) === 'string') {
-            core.debug(this.toolPath + ' arg: ' + val);
+            console.log("##[debug]" + this.toolPath + ' arg: ' + val);
             this.args = this.args.concat(val.trim());
         }
 
@@ -1125,7 +1124,7 @@ class ToolRunner extends events.EventEmitter {
             return this;
         }
 
-        core.debug(this.toolPath + ' arg: ' + val);
+        console.log("##[debug]" + this.toolPath + ' arg: ' + val);
         this.args = this.args.concat(this._argStringToArray(val));
         return this;
     }
@@ -1141,10 +1140,10 @@ class ToolRunner extends events.EventEmitter {
      * @returns   IExecSyncResult
      */
     public execSync(options?: IExecSyncOptions): IExecSyncResult {
-        core.debug('exec tool: ' + this.toolPath);
-        core.debug('arguments:');
+        console.log('##[debug]exec tool: ' + this.toolPath);
+        console.log('##[debug]arguments:');
         this.args.forEach((arg) => {
-            core.debug('   ' + arg);
+            console.log('##[debug]   ' + arg);
         });
 
         var success = true;

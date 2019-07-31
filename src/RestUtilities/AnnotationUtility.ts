@@ -1,7 +1,6 @@
 import { IAuthorizationHandler } from "../ArmRest/IAuthorizationHandler";
 import { AzureAppService } from "../ArmRest/azure-app-service";
 import { ApplicationInsightsResources, AzureApplicationInsights } from "../ArmRest/azure-arm-appinsights";
-import * as core from '@actions/core';
 var uuidV4 = require("uuid/v4");
 
 export async function addAnnotation(endpoint: IAuthorizationHandler, azureAppService: AzureAppService, isDeploymentSuccess: boolean): Promise<void> {
@@ -18,11 +17,11 @@ export async function addAnnotation(endpoint: IAuthorizationHandler, azureAppSer
                 console.log("Successfully added release annotation to the Application Insight :" + appInsightsResources[0].name);
             }
             else {
-                core.debug(`Unable to find Application Insights resource with Instrumentation key ${instrumentationKey}. Skipping adding release annotation.`);
+                console.log(`##[debug]Unable to find Application Insights resource with Instrumentation key ${instrumentationKey}. Skipping adding release annotation.`);
             }
         }
         else {
-            core.debug(`Application Insights is not configured for the App Service. Skipping adding release annotation.`);
+            console.log(`##[debug]Application Insights is not configured for the App Service. Skipping adding release annotation.`);
         }
     }
     catch(error) {

@@ -3,7 +3,6 @@ import webClient = require('../webClient');
 var parseString = require('xml2js').parseString;
 import Q = require('q');
 import { Kudu } from '../KuduRest/azure-app-kudu-service';
-import * as core from '@actions/core';
 
 export class AzureAppServiceUtility {
     private _appService: AzureAppService;
@@ -43,18 +42,18 @@ export class AzureAppServiceUtility {
             var applicationUrl: string = await this.getApplicationURL();
 
             if(!applicationUrl) {
-                core.debug("Application Url not found.");
+                console.log("##[debug]Application Url not found.");
                 return;
             }
             await AzureAppServiceUtility.pingApplication(applicationUrl);
         } catch(error) {
-            core.debug("Unable to ping App Service. Error: ${error}");
+            console.log("##[debug]Unable to ping App Service. Error: ${error}");
         }
     }
 
     public static async pingApplication(applicationUrl: string) {
         if(!applicationUrl) {
-            core.debug('Application Url empty.');
+            console.log('##[debug]Application Url empty.');
             return;
         }
         try {
@@ -64,10 +63,10 @@ export class AzureAppServiceUtility {
             };
             let webRequestOptions: webClient.WebRequestOptions = {retriableErrorCodes: [], retriableStatusCodes: [], retryCount: 1, retryIntervalInSeconds: 5, retryRequestTimedout: true};
             var response = await webClient.sendRequest(webRequest, webRequestOptions);
-            core.debug(`App Service status Code: '${response.statusCode}'. Status Message: '${response.statusMessage}'`);
+            console.log(`##[debug]App Service status Code: '${response.statusCode}'. Status Message: '${response.statusMessage}'`);
         }
         catch(error) {
-            core.debug(`Unable to ping App Service. Error: ${error}`);
+            console.log(`##[debug]Unable to ping App Service. Error: ${error}`);
         }
     }
 
@@ -109,27 +108,27 @@ export class AzureAppServiceUtility {
 
         var kuduService = await this.getKuduService();
         var noOftimesToIterate: number = 12;
-        core.debug('retrieving values from Kudu service to check if new values are updated');
+        console.log('##[debug]retrieving values from Kudu service to check if new values are updated');
         while(noOftimesToIterate > 0) {
             var kuduServiceAppSettings = await kuduService.getAppSettings();
             var propertiesChanged: boolean = true;
             for(var property in addProperties) {
                 if(kuduServiceAppSettings[property] != addProperties[property]) {
-                    core.debug('New properties are not updated in Kudu service :(');
+                    console.log('##[debug]New properties are not updated in Kudu service :(');
                     propertiesChanged = false;
                     break;
                 }
             }
             for(var property in deleteProperties) {
                 if(kuduServiceAppSettings[property]) {
-                    core.debug('Deleted properties are not reflected in Kudu service :(');
+                    console.log('##[debug]Deleted properties are not reflected in Kudu service :(');
                     propertiesChanged = false;
                     break;
                 }
             }
 
             if(propertiesChanged) {
-                core.debug('New properties are updated in Kudu service.');
+                console.log('##[debug]New properties are updated in Kudu service.');
                 console.log('Updated App Service Application settings and Kudu Application settings.');
                 return isNewValueUpdated;
             }
@@ -138,7 +137,7 @@ export class AzureAppServiceUtility {
             await webClient.sleepFor(5);
         }
 
-        core.debug('Timing out from app settings check');
+        console.log('##[debug]Timing out from app settings check');
         return isNewValueUpdated;
     }
 }

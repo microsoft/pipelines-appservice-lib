@@ -2,7 +2,6 @@ import { Kudu } from '../KuduRest/azure-app-kudu-service';
 import path = require('path');
 import { KUDU_DEPLOYMENT_CONSTANTS } from '../constants';
 import fs = require('fs');
-import * as core from '@actions/core';
 
 const deploymentFolder: string = 'site/deployments';
 const manifestFileName: string = 'manifest';
@@ -23,7 +22,7 @@ export class KuduServiceUtility {
             return await this._webAppKuduService.updateDeployment(requestBody);
         }
         catch(error) {
-            core.warning(error);
+            console.log('##[warning]' + error);
         }
     }
 
@@ -52,7 +51,7 @@ export class KuduServiceUtility {
             return deploymentDetails.id;
         }
         catch(error) {
-            core.error('Failed to deploy web package to App Service.');
+            console.log('##[error]Failed to deploy web package to App Service.');
             throw error;
         }
     }
@@ -71,7 +70,7 @@ export class KuduServiceUtility {
             console.log('Successfully deployed web package to App Service.');
         }
         catch(error) {
-            core.error('Failed to deploy web package to App Service.');
+            console.log('##[error]Failed to deploy web package to App Service.');
             throw error;
         }
     }
@@ -97,42 +96,42 @@ export class KuduServiceUtility {
             return deploymentDetails.id;
         }
         catch(error) {
-            core.error('Failed to deploy web package to App Service.');
+            console.log('##[error]Failed to deploy web package to App Service.');
             throw error;
         }
     }
 
     public async postZipDeployOperation(oldDeploymentID: string, activeDeploymentID: string): Promise<void> {
         try {
-            core.debug(`ZIP DEPLOY - Performing post zip-deploy operation: ${oldDeploymentID} => ${activeDeploymentID}`);
+            console.log(`##[debug]ZIP DEPLOY - Performing post zip-deploy operation: ${oldDeploymentID} => ${activeDeploymentID}`);
             let manifestFileContent = await this._webAppKuduService.getFileContent(`${deploymentFolder}/${oldDeploymentID}`, manifestFileName);
             if(!!manifestFileContent) {
                 let tempManifestFile: string = path.join(`${process.env.RUNNER_TEMP}`, manifestFileName);
                 fs.writeFileSync(tempManifestFile, manifestFileContent);
                 await this._webAppKuduService.uploadFile(`${deploymentFolder}/${activeDeploymentID}`, manifestFileName, tempManifestFile);
             }
-            core.debug('ZIP DEPLOY - Performed post-zipdeploy operation.');
+            console.log('##[debug]ZIP DEPLOY - Performed post-zipdeploy operation.');
         }
         catch(error) {
-            core.debug(`Failed to execute post zip-deploy operation: ${JSON.stringify(error)}.`);
+            console.log(`##[debug]Failed to execute post zip-deploy operation: ${JSON.stringify(error)}.`);
         }
     }
 
     public async warmpUp(): Promise<void> {
         try {
-            core.debug('warming up Kudu Service');
+            console.log('##[debug]warming up Kudu Service');
             await this._webAppKuduService.getAppSettings();
-            core.debug('warmed up Kudu Service');
+            console.log('##[debug]warmed up Kudu Service');
         }
         catch(error) {
-            core.debug('Failed to warm-up Kudu: ' + error.toString());
+            console.log('##[debug]Failed to warm-up Kudu: ' + error.toString());
         }
     }
 
     private async _processDeploymentResponse(deploymentDetails: any): Promise<void> {
         try {
             var kuduDeploymentDetails = await this._webAppKuduService.getDeploymentDetails(deploymentDetails.id);
-            core.debug(`logs from kudu deploy: ${kuduDeploymentDetails.log_url}`);
+            console.log(`##[debug]logs from kudu deploy: ${kuduDeploymentDetails.log_url}`);
 
             if(deploymentDetails.status == KUDU_DEPLOYMENT_CONSTANTS.FAILED) {
                 await this._printZipDeployLogs(kuduDeploymentDetails.log_url);
@@ -142,7 +141,7 @@ export class KuduServiceUtility {
             }
         }
         catch(error) {
-            core.debug(`Unable to fetch logs for kudu Deploy: ${JSON.stringify(error)}`);
+            console.log(`##[debug]Unable to fetch logs for kudu Deploy: ${JSON.stringify(error)}`);
         }
 
         if(deploymentDetails.status == KUDU_DEPLOYMENT_CONSTANTS.FAILED) {

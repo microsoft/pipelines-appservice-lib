@@ -1,4 +1,3 @@
-import * as core from '@actions/core';
 import { parse } from './parameterParserUtility';
 import { PackageType, exist } from './packageUtility';
 import fs = require('fs');
@@ -11,11 +10,11 @@ export class FileTransformUtility {
     private static rootDirectoryPath: string = "D:\\home\\site\\wwwroot";
 
     public static async applyTransformations(webPackage: string, parameters: string, packageType: PackageType): Promise<string> {
-        core.debug("WebConfigParameters is "+ parameters);
+        console.log("##[debug]WebConfigParameters is "+ parameters);
         if (parameters) {
             var folderPath = await deployUtility.generateTemporaryFolderForDeployment(false, webPackage, packageType);
             if (parameters) {
-                core.debug('parsing web.config parameters');
+                console.log('##[debug]parsing web.config parameters');
                 var webConfigParameters = parse(parameters);
                 addWebConfigFile(folderPath, webConfigParameters, this.rootDirectoryPath);
             }
@@ -24,7 +23,7 @@ export class FileTransformUtility {
             webPackage = output.webDeployPkg;
         }
         else {
-            core.debug('File Tranformation not enabled');
+            console.log('##[debug]File Tranformation not enabled');
         }
 
         return webPackage;
@@ -38,7 +37,7 @@ function addWebConfigFile(folderPath: any, webConfigParameters, rootDirectoryPat
         try {
             // Create web.config
             var appType: string = webConfigParameters['appType'].value;
-            core.debug('Generating Web.config file for App type: ' + appType);
+            console.log('##[debug]Generating Web.config file for App type: ' + appType);
             delete webConfigParameters['appType'];
 
             var selectedAppTypeParams = addMissingParametersValue(appType, webConfigParameters);
@@ -75,11 +74,11 @@ function addMissingParametersValue(appType: string, webConfigParameters) {
     var resultAppTypeParams = {};
     for(var paramAtttribute in selectedAppTypeParams) {
         if(webConfigParameters[paramAtttribute]) {
-            core.debug("param Attribute'" + paramAtttribute + "' values provided as: " + webConfigParameters[paramAtttribute].value);
+            console.log("##[debug]param Attribute'" + paramAtttribute + "' values provided as: " + webConfigParameters[paramAtttribute].value);
             resultAppTypeParams[paramAtttribute] = webConfigParameters[paramAtttribute].value;
         }
         else {
-            core.debug("param Attribute '" + paramAtttribute + "' is not provided. Overriding the value with '" + selectedAppTypeParams[paramAtttribute]+ "'");
+            console.log("##[debug]param Attribute '" + paramAtttribute + "' is not provided. Overriding the value with '" + selectedAppTypeParams[paramAtttribute]+ "'");
             resultAppTypeParams[paramAtttribute] = selectedAppTypeParams[paramAtttribute];
         }
     }
@@ -96,7 +95,7 @@ function generateWebConfigFile(webConfigTargetPath: string, appType: string, sub
 
 function replaceMultiple(text: string, substitutions: any): string {
     for(var key in substitutions) {
-        core.debug('Replacing: ' + '{' + key + '} with: ' + substitutions[key]);
+        console.log('##[debug]Replacing: ' + '{' + key + '} with: ' + substitutions[key]);
         text = text.replace(new RegExp('{' + key + '}', 'g'), substitutions[key]);
     }
     return text;

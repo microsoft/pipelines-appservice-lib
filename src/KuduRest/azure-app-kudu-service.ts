@@ -3,7 +3,6 @@ import { KuduServiceClient } from './KuduServiceClient';
 import webClient = require('../webClient');
 import { KUDU_DEPLOYMENT_CONSTANTS } from '../constants';
 import { exist } from '../Utilities/packageUtility';
-import * as core from '@actions/core';
 
 export class Kudu {
     private _client: KuduServiceClient;
@@ -23,7 +22,7 @@ export class Kudu {
         try {
             let webRequestOptions: webClient.WebRequestOptions = {retriableErrorCodes: [], retriableStatusCodes: null, retryCount: 5, retryIntervalInSeconds: 5, retryRequestTimedout: true};
             var response = await this._client.beginRequest(httpRequest, webRequestOptions);
-            core.debug(`updateDeployment. Data: ${JSON.stringify(response)}`);
+            console.log(`##[debug]updateDeployment. Data: ${JSON.stringify(response)}`);
             if(response.statusCode == 200) {
                 console.log("Successfully updated deployment History at " + response.body.url);
                 return response.body.id;
@@ -47,7 +46,7 @@ export class Kudu {
 
         try {
             var response = await this._client.beginRequest(httpRequest);
-            core.debug(`getAppSettings. Data: ${JSON.stringify(response)}`);
+            console.log(`##[debug]getAppSettings. Data: ${JSON.stringify(response)}`);
             if(response.statusCode == 200) {
                 return response.body;
             }
@@ -77,10 +76,10 @@ export class Kudu {
         };
 
         try {
-            core.debug('Executing Script on Kudu. Command: ' + command);
+            console.log('##[debug]Executing Script on Kudu. Command: ' + command);
             let webRequestOptions: webClient.WebRequestOptions = {retriableErrorCodes: null, retriableStatusCodes: null, retryCount: 5, retryIntervalInSeconds: 5, retryRequestTimedout: false};
             var response = await this._client.beginRequest(httpRequest, webRequestOptions);
-            core.debug(`runCommand. Data: ${JSON.stringify(response)}`);
+            console.log(`##[debug]runCommand. Data: ${JSON.stringify(response)}`);
             if(response.statusCode == 200) {
                 return ;
             }
@@ -108,7 +107,7 @@ export class Kudu {
 
         try {
             var response = await this._client.beginRequest(httpRequest);
-            core.debug(`extractZIP. Data: ${JSON.stringify(response)}`);
+            console.log(`##[debug]extractZIP. Data: ${JSON.stringify(response)}`);
             if(response.statusCode == 200) {
                 return ;
             }
@@ -133,19 +132,19 @@ export class Kudu {
 
         try {
             let response = await this._client.beginRequest(httpRequest, null, 'application/octet-stream');
-            core.debug(`ZIP Deploy response: ${JSON.stringify(response)}`);
+            console.log(`##[debug]ZIP Deploy response: ${JSON.stringify(response)}`);
             if(response.statusCode == 200) {
-                core.debug('Deployment passed');
+                console.log('##[debug]Deployment passed');
                 return null;
             }
             else if(response.statusCode == 202) {
                 let pollableURL: string = response.headers.location;
                 if(!!pollableURL) {
-                    core.debug(`Polling for ZIP Deploy URL: ${pollableURL}`);
+                    console.log(`##[debug]Polling for ZIP Deploy URL: ${pollableURL}`);
                     return await this._getDeploymentDetailsFromPollURL(pollableURL);
                 }
                 else {
-                    core.debug('zip deploy returned 202 without pollable URL.');
+                    console.log('##[debug]zip deploy returned 202 without pollable URL.');
                     return null;
                 }
             }
@@ -170,19 +169,19 @@ export class Kudu {
 
         try {
             let response = await this._client.beginRequest(httpRequest, null, 'application/octet-stream');
-            core.debug(`War Deploy response: ${JSON.stringify(response)}`);
+            console.log(`##[debug]War Deploy response: ${JSON.stringify(response)}`);
             if(response.statusCode == 200) {
-                core.debug('Deployment passed');
+                console.log('##[debug]Deployment passed');
                 return null;
             }
             else if(response.statusCode == 202) {
                 let pollableURL: string = response.headers.location;
                 if(!!pollableURL) {
-                    core.debug(`Polling for War Deploy URL: ${pollableURL}`);
+                    console.log(`##[debug]Polling for War Deploy URL: ${pollableURL}`);
                     return await this._getDeploymentDetailsFromPollURL(pollableURL);
                 }
                 else {
-                    core.debug('war deploy returned 202 without pollable URL.');
+                    console.log('##[debug]war deploy returned 202 without pollable URL.');
                     return null;
                 }
             }
@@ -206,7 +205,7 @@ export class Kudu {
                 uri: this._client.getRequestUri(`/api/deployments/${deploymentID}`)
             };
             var response = await this._client.beginRequest(httpRequest);
-            core.debug(`getDeploymentDetails. Data: ${JSON.stringify(response)}`);
+            console.log(`##[debug]getDeploymentDetails. Data: ${JSON.stringify(response)}`);
             if(response.statusCode == 200) {
                 return response.body;
             }
@@ -228,7 +227,7 @@ export class Kudu {
                 uri: log_url
             };
             var response = await this._client.beginRequest(httpRequest);
-            core.debug(`getDeploymentLogs. Data: ${JSON.stringify(response)}`);
+            console.log(`##[debug]getDeploymentLogs. Data: ${JSON.stringify(response)}`);
             if(response.statusCode == 200) {
                 return response.body;
             }
@@ -256,7 +255,7 @@ export class Kudu {
 
         try {
             var response = await this._client.beginRequest(httpRequest);
-            core.debug(`getFileContent. Status code: ${response.statusCode} - ${response.statusMessage}`);
+            console.log(`##[debug]getFileContent. Status code: ${response.statusCode} - ${response.statusMessage}`);
             if([200, 201, 204].indexOf(response.statusCode) != -1) {
                 return response.body;
             }
@@ -293,7 +292,7 @@ export class Kudu {
 
         try {
             var response = await this._client.beginRequest(httpRequest);
-            core.debug(`uploadFile. Data: ${JSON.stringify(response)}`);
+            console.log(`##[debug]uploadFile. Data: ${JSON.stringify(response)}`);
             if([200, 201, 204].indexOf(response.statusCode) != -1) {
                 return response.body;
             }
@@ -321,7 +320,7 @@ export class Kudu {
 
         try {
             var response = await this._client.beginRequest(httpRequest);
-            core.debug(`deleteFile. Data: ${JSON.stringify(response)}`);
+            console.log(`##[debug]deleteFile. Data: ${JSON.stringify(response)}`);
             if([200, 201, 204, 404].indexOf(response.statusCode) != -1) {
                 return ;
             }
@@ -348,12 +347,12 @@ export class Kudu {
             let response = await this._client.beginRequest(httpRequest);
             if(response.statusCode == 200 || response.statusCode == 202) {
                 var result = response.body;
-                core.debug(`POLL URL RESULT: ${JSON.stringify(response)}`);
+                console.log(`##[debug]POLL URL RESULT: ${JSON.stringify(response)}`);
                 if(result.status == KUDU_DEPLOYMENT_CONSTANTS.SUCCESS || result.status == KUDU_DEPLOYMENT_CONSTANTS.FAILED) {
                     return result;
                 }
                 else {
-                    core.debug(`Deployment status: ${result.status} '${result.status_text}'. retry after 5 seconds`);
+                    console.log(`##[debug]Deployment status: ${result.status} '${result.status_text}'. retry after 5 seconds`);
                     await webClient.sleepFor(5);
                     continue;
                 }
