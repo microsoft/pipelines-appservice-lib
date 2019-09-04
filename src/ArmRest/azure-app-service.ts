@@ -30,7 +30,7 @@ export class AzureAppService {
         this._client = new ServiceClient(endpoint, 30);
         this._resourceGroup = resourceGroup;
         this._name = name;
-        this._slot = (slot && slot.toLowerCase() == "production") ? null : slot;        
+        this._slot = (slot && slot.toLowerCase() == "production") ? null : slot;
         this._slotUrl = !!this._slot ? `/slots/${this._slot}` : '';
     }
 
@@ -38,12 +38,12 @@ export class AzureAppService {
         if(force || !this._appServiceConfigurationDetails) {
             this._appServiceConfigurationDetails = await this._get();
         }
-        
+
         return this._appServiceConfigurationDetails;
     }
 
     public async restart(): Promise<void> {
-        try {            
+        try {
             var slotUrl: string = !!this._slot ? `/slots/${this._slot}` : '';
             var webRequest: webClient.WebRequest = {
                 method: 'POST',
@@ -78,7 +78,7 @@ export class AzureAppService {
     }
 
     public async getPublishingCredentials(): Promise<any> {
-        try {            
+        try {
             var httpRequest: webClient.WebRequest = {
                 method: 'POST',
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/config/publishingcredentials/list`,
@@ -87,7 +87,7 @@ export class AzureAppService {
                         '{name}': this._name,
                     }, null, '2016-08-01')
             };
-            
+
             var response = await this._client.beginRequest(httpRequest);
             if(response.statusCode != 200) {
                 throw ToError(response);
@@ -122,7 +122,7 @@ export class AzureAppService {
                         '{name}': this._name,
                     }, null, '2016-08-01')
             };
-            
+
             var response = await this._client.beginRequest(httpRequest);
             if(response.statusCode != 200) {
                 throw ToError(response);
@@ -163,7 +163,7 @@ export class AzureAppService {
 
         return isNewValueUpdated;
     }
-    
+
     public async syncFunctionTriggers(): Promise<any> {
         try {
             let i = 0;
@@ -171,14 +171,14 @@ export class AzureAppService {
             let retryIntervalInSeconds = 2;
             let timeToWait: number = retryIntervalInSeconds;
             var httpRequest: webClient.WebRequest = {
-                method: 'POST',                
+                method: 'POST',
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/syncfunctiontriggers`,
                 {
                     '{resourceGroupName}': this._resourceGroup,
                     '{name}': this._name,
                 }, null, '2016-08-01')
             }
-            
+
             while(true) {
                 var response = await this._client.beginRequest(httpRequest);
                 if(response.statusCode == 200) {
@@ -207,8 +207,51 @@ export class AzureAppService {
         }
     }
 
+    public async syncFunctionTriggersViaHostruntime(): Promise<any> {
+        try {
+            let i = 0;
+            let retryCount = 5;
+            let retryIntervalInSeconds = 2;
+            let timeToWait: number = retryIntervalInSeconds;
+            var httpRequest: webClient.WebRequest = {
+                method: 'POST',
+                uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/hostruntime/admin/host/synctriggers`,
+                {
+                    '{resourceGroupName}': this._resourceGroup,
+                    '{name}': this._name,
+                }, null, '2015-08-01')
+            }
+
+            while(true) {
+                var response = await this._client.beginRequest(httpRequest);
+                if(response.statusCode == 200) {
+                    return response.body;
+                }
+                else if(response.statusCode == 400) {
+                    if (++i < retryCount) {
+                        await webClient.sleepFor(timeToWait);
+                        timeToWait = timeToWait * retryIntervalInSeconds + retryIntervalInSeconds;
+                        continue;
+                    }
+                    else {
+                        throw ToError(response);
+                    }
+                }
+                else {
+                    throw ToError(response);
+                }
+            }
+        }
+        catch(error) {
+            if(error && error.message && typeof error.message.valueOf() == 'string') {
+                error.message = "Failed to sync triggers via host runtime for function app " + this._getFormattedName() + ".\n" + error.message;
+            }
+            throw error;
+        }
+    }
+
     public async getConfiguration(): Promise<AzureAppServiceConfigurationDetails> {
-        try {            
+        try {
             var httpRequest: webClient.WebRequest = {
                 method: 'GET',
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/config/web`,
@@ -217,7 +260,7 @@ export class AzureAppService {
                         '{name}': this._name,
                     }, null, '2016-08-01')
             };
-            
+
             var response = await this._client.beginRequest(httpRequest);
             if(response.statusCode != 200) {
                 throw ToError(response);
@@ -244,7 +287,7 @@ export class AzureAppService {
                     '{name}': this._name,
                 }, null, '2016-08-01')
             };
-            
+
             var response = await this._client.beginRequest(httpRequest);
             if(response.statusCode != 200) {
                 throw ToError(response);
@@ -271,7 +314,7 @@ export class AzureAppService {
                         '{name}': this._name,
                     }, null, '2016-08-01')
             }
-            
+
             var response = await this._client.beginRequest(httpRequest);
             if(response.statusCode != 200) {
                 throw ToError(response);
@@ -291,14 +334,14 @@ export class AzureAppService {
     public async getMetadata(): Promise<AzureAppServiceConfigurationDetails> {
         try {
             var httpRequest: webClient.WebRequest = {
-                method: 'POST',                
+                method: 'POST',
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/config/metadata/list`,
                 {
                     '{resourceGroupName}': this._resourceGroup,
                     '{name}': this._name,
                 }, null, '2016-08-01')
             }
-            
+
             var response = await this._client.beginRequest(httpRequest);
             if(response.statusCode != 200) {
                 throw ToError(response);
@@ -318,14 +361,14 @@ export class AzureAppService {
         try {
             var httpRequest: webClient.WebRequest = {
                 method: 'PUT',
-                body: JSON.stringify(applicationSettings),           
+                body: JSON.stringify(applicationSettings),
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/config/metadata`,
                 {
                     '{resourceGroupName}': this._resourceGroup,
                     '{name}': this._name,
                 }, null, '2016-08-01')
             }
-            
+
             var response = await this._client.beginRequest(httpRequest);
             if(response.statusCode != 200) {
                 throw ToError(response);
@@ -340,7 +383,7 @@ export class AzureAppService {
             throw error;
         }
     }
-    
+
     public async patchMetadata(properties): Promise<void> {
         var applicationSettings = await this.getMetadata();
         for(var key in properties) {
@@ -349,22 +392,22 @@ export class AzureAppService {
 
         await this.updateMetadata(applicationSettings);
     }
-    
+
     public getSlot(): string {
         return this._slot ? this._slot : "production";
     }
-    
+
     private async _getPublishingProfileWithSecrets(): Promise<any> {
         try {
             var httpRequest: webClient.WebRequest = {
-                method: 'POST',                
+                method: 'POST',
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/publishxml`,
                 {
                     '{resourceGroupName}': this._resourceGroup,
                     '{name}': this._name,
                 }, null, '2016-08-01')
             }
-            
+
             var response = await this._client.beginRequest(httpRequest);
             if(response.statusCode != 200) {
                 throw ToError(response);
@@ -384,14 +427,14 @@ export class AzureAppService {
     private async _getApplicationSettings(): Promise<AzureAppServiceConfigurationDetails> {
         try {
             var httpRequest: webClient.WebRequest = {
-                method: 'POST',                
+                method: 'POST',
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/config/appsettings/list`,
                 {
                     '{resourceGroupName}': this._resourceGroup,
                     '{name}': this._name,
                 }, null, '2016-08-01')
             }
-            
+
             var response = await this._client.beginRequest(httpRequest);
             if(response.statusCode != 200) {
                 throw ToError(response);
@@ -417,7 +460,7 @@ export class AzureAppService {
                         '{name}': this._name,
                     }, null, '2016-08-01')
             };
-            
+
             var response = await this._client.beginRequest(httpRequest);
             if(response.statusCode != 200) {
                 throw ToError(response);
