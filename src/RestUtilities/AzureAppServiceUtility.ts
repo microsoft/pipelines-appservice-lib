@@ -73,7 +73,11 @@ export class AzureAppServiceUtility {
     public async getKuduService(): Promise<Kudu> {
         var publishingCredentials = await this._appService.getPublishingCredentials();
         if(publishingCredentials.properties["scmUri"]) {
-            return new Kudu(publishingCredentials.properties["scmUri"], publishingCredentials.properties["publishingUserName"], publishingCredentials.properties["publishingPassword"]);
+            let userName = publishingCredentials.properties["publishingUserName"];
+            let password = publishingCredentials.properties["publishingPassword"];
+            console.log(`::add-mask::${userName}`);
+            console.log(`::add-mask::${password}`);
+            return new Kudu(publishingCredentials.properties["scmUri"], userName, password);
         }
 
         throw Error('KuduSCMDetailsAreEmpty');
