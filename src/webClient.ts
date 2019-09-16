@@ -5,8 +5,6 @@ import httpInterfaces = require("typed-rest-client/Interfaces");
 
 var requestOptions: httpInterfaces.IRequestOptions = {};
 
-var httpCallbackClient = new httpClient.HttpClient(`${process.env.AZURE_HTTP_USER_AGENT}`, undefined, requestOptions);
-
 export interface WebRequest {
     method: string;
     uri: string;
@@ -42,7 +40,7 @@ export async function sendRequest(request: WebRequest, options?: WebRequestOptio
             if (request.body && typeof(request.body) !== 'string' && !request.body["readable"]) {
                 request.body = fs.createReadStream((request as any).body["path"]);
             }
-            
+
             let response: WebResponse | undefined = await sendRequestInternal(request);
             if (response && retriableStatusCodes.indexOf(response.statusCode) != -1 && ++i < retryCount) {
                 console.log(util.format("Encountered a retriable status code: %s. Message: '%s'.", response.statusCode, response.statusMessage));
@@ -78,6 +76,7 @@ export function sleepFor(sleepDurationInSeconds: number): Promise<any> {
 
 async function sendRequestInternal(request: WebRequest): Promise<WebResponse | undefined> {
     console.log(util.format("[%s]%s", request.method, request.uri));
+    const httpCallbackClient: httpClient.HttpClient = new httpClient.HttpClient(`${process.env.AZURE_HTTP_USER_AGENT}`, undefined, requestOptions);
     var response: httpClient.HttpClientResponse = await httpCallbackClient.request(request.method, request.uri, request.body || "", request.headers);
     return await toWebResponse(response);
 }
