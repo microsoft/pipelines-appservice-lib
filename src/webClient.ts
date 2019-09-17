@@ -1,9 +1,7 @@
 import util = require("util");
 import fs = require('fs');
 import httpClient = require("typed-rest-client/HttpClient");
-import httpInterfaces = require("typed-rest-client/Interfaces");
-
-var requestOptions: httpInterfaces.IRequestOptions = {};
+import { RequestClient } from './requestClient';
 
 export interface WebRequest {
     method: string;
@@ -76,7 +74,7 @@ export function sleepFor(sleepDurationInSeconds: number): Promise<any> {
 
 async function sendRequestInternal(request: WebRequest): Promise<WebResponse | undefined> {
     console.log(util.format("[%s]%s", request.method, request.uri));
-    const httpCallbackClient: httpClient.HttpClient = new httpClient.HttpClient(`${process.env.AZURE_HTTP_USER_AGENT}`, undefined, requestOptions);
+    const httpCallbackClient: httpClient.HttpClient = RequestClient.GetInstance();
     var response: httpClient.HttpClientResponse = await httpCallbackClient.request(request.method, request.uri, request.body || "", request.headers);
     return await toWebResponse(response);
 }
