@@ -1,8 +1,10 @@
 import { AzureAppService } from '../ArmRest/azure-app-service';
+import { Kudu } from '../KuduRest/azure-app-kudu-service';
+
 import webClient = require('../webClient');
 var parseString = require('xml2js').parseString;
 import Q = require('q');
-import { Kudu } from '../KuduRest/azure-app-kudu-service';
+
 
 export class AzureAppServiceUtility {
     private _appService: AzureAppService;
@@ -75,8 +77,10 @@ export class AzureAppServiceUtility {
         if(publishingCredentials.properties["scmUri"]) {
             let userName = publishingCredentials.properties["publishingUserName"];
             let password = publishingCredentials.properties["publishingPassword"];
-            console.log(`::add-mask::${userName}`);
+
+            // masking kudu password
             console.log(`::add-mask::${password}`);
+            
             return new Kudu(publishingCredentials.properties["scmUri"], userName, password);
         }
 

@@ -1,7 +1,8 @@
 import util = require("util");
 import fs = require('fs');
 import httpClient = require("typed-rest-client/HttpClient");
-import { RequestClient } from './requestClient';
+
+import { RequestClient } from './RequestClient';
 
 export interface WebRequest {
     method: string;
