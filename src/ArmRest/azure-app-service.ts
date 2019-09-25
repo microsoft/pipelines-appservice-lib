@@ -395,7 +395,7 @@ export class AzureAppService {
             var slotUrl: string = !!this._slot ? `/slots/${this._slot}` : '';
             var httpRequest: webClient.WebRequest = {
                 method: 'PUT',
-                body: 'JSON.stringify(connectionStringSettings)',
+                body: JSON.stringify(connectionStringSettings),
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${slotUrl}/config/connectionstrings`,
                 {
                     '{resourceGroupName}': this._resourceGroup,
