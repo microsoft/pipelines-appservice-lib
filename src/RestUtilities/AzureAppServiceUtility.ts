@@ -105,7 +105,14 @@ export class AzureAppServiceUtility {
             appSettingsProperties[addProperties[property].name] = addProperties[property].value;
         }
         
-        console.log('Updating App Service Application settings. Adding: %s. Deleting : %s', JSON.stringify(appSettingsProperties), JSON.stringify(deleteProperties));
+        if(!!addProperties) {
+            console.log('Updating App Service Application settings. Data: ' + JSON.stringify(appSettingsProperties));
+        }
+
+        if(!!deleteProperties) {
+            console.log('Deleting App Service Application settings. Data: ' + JSON.stringify(Object.keys(deleteProperties)));
+        }
+        
         var isNewValueUpdated: boolean = await this._appService.patchApplicationSettings(appSettingsProperties, deleteProperties);
 
         if(!isNewValueUpdated) {
