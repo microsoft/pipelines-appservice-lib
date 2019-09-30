@@ -100,19 +100,26 @@ export class AzureAppServiceUtility {
     }
 
     public async updateAndMonitorAppSettings(addProperties?: any, deleteProperties?: any): Promise<boolean> {
+        var appSettingsProperties = {};
         for(var property in addProperties) {
-            if(!!addProperties[property] && addProperties[property].value !== undefined) {
-                addProperties[property] = addProperties[property].value;
-            }
+            appSettingsProperties[addProperties[property].name] = addProperties[property].value;
         }
         
-        console.log('Updating App Service Application settings. Adding: %s. Deleting : %s', JSON.stringify(addProperties), JSON.stringify(deleteProperties));
-        var isNewValueUpdated: boolean = await this._appService.patchApplicationSettings(addProperties, deleteProperties);
+        if(!!addProperties) {
+            console.log('Updating App Service Application settings. Data: ' + JSON.stringify(appSettingsProperties));
+        }
+
+        if(!!deleteProperties) {
+            console.log('Deleting App Service Application settings. Data: ' + JSON.stringify(Object.keys(deleteProperties)));
+        }
+        
+        var isNewValueUpdated: boolean = await this._appService.patchApplicationSettings(appSettingsProperties, deleteProperties);
 
         if(!isNewValueUpdated) {
             console.log('Updated App Service Application settings and Kudu Application settings.');
-            return isNewValueUpdated;
         }
+
+        await this._appService.patchApplicationSettingsSlot(addProperties);
 
         var kuduService = await this.getKuduService();
         var noOftimesToIterate: number = 12;
@@ -147,5 +154,27 @@ export class AzureAppServiceUtility {
 
         console.log('##[debug]Timing out from app settings check');
         return isNewValueUpdated;
+    }
+
+    public async updateConnectionStrings(addProperties: any): Promise<boolean>  {
+        var connectionStringProperties = {};
+        for(var property in addProperties) {
+            if (!addProperties[property].type) {
+                addProperties[property].type = "Custom";
+            }
+            if (!addProperties[property].slotSetting) {
+                addProperties[property].slotSetting = false;
+            }
+            connectionStringProperties[addProperties[property].name] = addProperties[property];
+            delete connectionStringProperties[addProperties[property].name].name;
+        }
+
+        console.log('Updating App Service Connection Strings. Data: ' + JSON.stringify(connectionStringProperties));
+        var isNewValueUpdated: boolean = await this._appService.patchConnectionString(connectionStringProperties);
+        await this._appService.patchConnectionStringSlot(connectionStringProperties);
+        if(!isNewValueUpdated) {
+            console.log('Updated App Service Connection Strings.');
+            return isNewValueUpdated;
+        }
     }
 }
