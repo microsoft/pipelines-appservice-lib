@@ -3,6 +3,7 @@ import { AzureAppServiceUtility } from '../Utilities/AzureAppServiceUtility';
 
 import fs = require('fs');
 import path = require('path');
+import core = require('@actions/core');
 
 export class ContainerDeploymentUtility {
     private _appService: AzureAppService;
@@ -17,19 +18,19 @@ export class ContainerDeploymentUtility {
         let updatedMulticontainerConfigFile: string = multiContainerConfigFile;
 
         if(isMultiContainer) {
-            console.log("##[debug]Deploying Docker-Compose file " + multiContainerConfigFile + " to the webapp " + this._appService.getName());
+            core.debug("Deploying Docker-Compose file " + multiContainerConfigFile + " to the webapp " + this._appService.getName());
             if(!!images) {
                 updatedMulticontainerConfigFile = this._updateImagesInConfigFile(multiContainerConfigFile, images);
             }
         }
         else {
-            console.log("##[debug]Deploying image " + images + " to the webapp " + this._appService.getName());
+            core.debug("Deploying image " + images + " to the webapp " + this._appService.getName());
         }
 
-        console.log("##[debug]Updating the webapp configuration.");
+        core.debug("Updating the webapp configuration.");
         await this._updateConfigurationDetails(startupCommand, isLinux, isMultiContainer, images, updatedMulticontainerConfigFile);
 
-        console.log('##[debug]making a restart request to app service');
+        core.debug('making a restart request to app service');
         await this._appService.restart();
     }
 
@@ -56,7 +57,7 @@ export class ContainerDeploymentUtility {
     private _tokenizeImages(currentString: string, imageName: string, imageNameWithNewTag: string) {
         let i = currentString.indexOf(imageName);
         if (i < 0) {
-            console.log(`##[debug]No occurence of replacement token: ${imageName} found`);
+            core.debug(`No occurence of replacement token: ${imageName} found`);
             return currentString;
         }
 
@@ -97,7 +98,7 @@ export class ContainerDeploymentUtility {
             appSettingsNewProperties["windowsFxVersion"] =  "DOCKER|" + imageName;
         }
 
-        console.log(`##[debug]CONTAINER UPDATE CONFIG VALUES : ${JSON.stringify(appSettingsNewProperties)}`);
+        core.debug(`CONTAINER UPDATE CONFIG VALUES : ${JSON.stringify(appSettingsNewProperties)}`);
         await this._appServiceUtility.updateConfigurationSettings(appSettingsNewProperties);
     }
 }
