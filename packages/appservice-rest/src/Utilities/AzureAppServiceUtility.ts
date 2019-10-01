@@ -119,7 +119,7 @@ export class AzureAppServiceUtility {
         await this._appService.patchApplicationSettingsSlot(addProperties);
 
         if(!!isNewValueUpdated) {
-            console.log('Updated App Service Application settings and Kudu Application settings.');
+            console.log('Updated App Service Application settings.');
         }
 
         return isNewValueUpdated;
