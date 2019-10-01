@@ -1,9 +1,9 @@
 {
-  "name": "azure-actions-webclient",
-  "version": "1.0.1",
-  "description": "Authorize to azure and make rest calls",
+  "name": "azure-actions-appservice-rest",
+  "version": "1.0.0",
+  "description": "Azure resource manager and kudu node rest module",
   "keywords": [
-    "webclient",
+    "appservice",
     "actions"
   ],
   "scripts": {
@@ -15,27 +15,24 @@
     "type": "git",
     "url": "git+https://github.com/Microsoft/pipelines-appservice-lib.git"
   },
-  "author": "Sumiran Aggarwal <suaggar@microsoft.com>",
+  "author": "Sumiran Aggarwal",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Microsoft/pipelines-appservice-lib/issues"
   },
-  "homepage": "https://github.com/Microsoft/pipelines-appservice-lib/tree/master/packages/webclient",
+  "homepage": "https://github.com/Microsoft/pipelines-appservice-lib/tree/master/packages/appservice-rest",
   "devDependencies": {
     "typescript": "^3.6.3"
   },
   "dependencies": {
     "@actions/core": "^1.1.1",
-    "@actions/exec": "^1.0.1",
     "@actions/io": "^1.0.1",
-    "@types/node": "^12.7.8",
+    "azure-actions-webclient": "^1.0.1",
     "fs": "0.0.1-security",
-    "q": "^1.5.1",
-    "querystring": "^0.2.0",
-    "typed-rest-client": "^1.5.0",
-    "util": "^0.12.1"
+    "util": "^0.12.1",
+    "xml2js": "^0.4.22"
   },
   "files": [
-    "lib/**/*"
+    "lib/**/**"
   ]
 }
