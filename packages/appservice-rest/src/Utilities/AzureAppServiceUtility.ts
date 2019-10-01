@@ -116,12 +116,12 @@ export class AzureAppServiceUtility {
         }
         
         var isNewValueUpdated: boolean = await this._appService.patchApplicationSettings(appSettingsProperties, deleteProperties);
+        await this._appService.patchApplicationSettingsSlot(addProperties);
 
-        if(!isNewValueUpdated) {
+        if(!!isNewValueUpdated) {
             console.log('Updated App Service Application settings and Kudu Application settings.');
         }
 
-        await this._appService.patchApplicationSettingsSlot(addProperties);
         return isNewValueUpdated;
     }
 
@@ -141,9 +141,10 @@ export class AzureAppServiceUtility {
         console.log('Updating App Service Connection Strings. Data: ' + JSON.stringify(connectionStringProperties));
         var isNewValueUpdated: boolean = await this._appService.patchConnectionString(connectionStringProperties);
         await this._appService.patchConnectionStringSlot(connectionStringProperties);
-        if(!isNewValueUpdated) {
+        if(!!isNewValueUpdated) {
             console.log('Updated App Service Connection Strings.');
-            return isNewValueUpdated;
         }
+        
+        return isNewValueUpdated;
     }
 }
