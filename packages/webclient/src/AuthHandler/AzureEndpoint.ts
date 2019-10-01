@@ -66,7 +66,7 @@ export class AzureEndpoint implements IAuthorizationHandler {
         this._activeDirectoryResourceId = url;
     }
 
-    public getToken(args?: string[], force?: boolean): Promise<string> {
+    public getToken(force?: boolean, args?: string[]): Promise<string> {
         if (!this.token_deferred || force) {
             this.token_deferred = this._getSPNAuthorizationToken();
         }

@@ -83,7 +83,7 @@ export class ServiceClient {
     }
 
     public async beginRequest(request: webClient.WebRequest, tokenArgs?: string[]): Promise<webClient.WebResponse> {
-        var token = await this.endpoint.getToken(tokenArgs);
+        var token = await this.endpoint.getToken(false, tokenArgs);
 
         request.headers = request.headers || {};
         request.headers["Authorization"] = "Bearer " + token;
@@ -96,7 +96,7 @@ export class ServiceClient {
             httpResponse = await webClient.sendRequest(request);
             if (httpResponse.statusCode === 401 && httpResponse.body && httpResponse.body.error && httpResponse.body.error.code === "ExpiredAuthenticationToken") {
                 // The access token might have expire. Re-issue the request after refreshing the token.
-                token = await this.endpoint.getToken(tokenArgs, true);
+                token = await this.endpoint.getToken(true, tokenArgs);
                 request.headers["Authorization"] = "Bearer " + token;
                 httpResponse = await webClient.sendRequest(request);
             }

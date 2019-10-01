@@ -1,5 +1,5 @@
 export interface IAuthorizationHandler {
-    getToken(args?: string[], force?: boolean): Promise<string>;
+    getToken(force?: boolean, args?: string[]): Promise<string>;
     subscriptionID: string;
     baseUrl: string;
 }

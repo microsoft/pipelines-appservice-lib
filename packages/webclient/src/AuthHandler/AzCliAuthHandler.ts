@@ -32,7 +32,7 @@ export class AzCliAuthHandler implements IAuthorizationHandler{
         return this._baseUrl;
     }
 
-    public async getToken(args?: string[], force?: boolean): Promise<string> {
+    public async getToken(force?: boolean, args?: string[]): Promise<string> {
         if(!this._token || force) {  
             try {
                 let azAccessToken = JSON.parse(await executeAzCliCommand('account get-access-token', !!args ? args : []));
