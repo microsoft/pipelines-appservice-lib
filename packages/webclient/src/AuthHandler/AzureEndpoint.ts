@@ -1,6 +1,6 @@
 import Q = require('q');
 import fs = require('fs');
-import webClient = require("../webClient");
+import { WebClient, WebResponse, WebRequest, WebRequestOptions } from "../webClient";
 import querystring = require('querystring');
 
 import { IAuthorizationHandler } from "./IAuthorizationHandler";
@@ -8,6 +8,7 @@ import { IAuthorizationHandler } from "./IAuthorizationHandler";
 export class AzureEndpoint implements IAuthorizationHandler {
     private static endpoint: AzureEndpoint;
     private _subscriptionID: string;
+    private _webClient: WebClient;
     private servicePrincipalClientID: string;
     private servicePrincipalKey: string;
     private tenantID: string;
@@ -29,6 +30,7 @@ export class AzureEndpoint implements IAuthorizationHandler {
         this._baseUrl = "https://management.azure.com/";
         this.environmentAuthorityUrl = "https://login.windows.net/";
         this.activeDirectoryResourceId = "https://management.core.windows.net/";
+        this._webClient = new WebClient();
     }
 
     public static getEndpoint(authFilePath: string): AzureEndpoint {
@@ -76,7 +78,7 @@ export class AzureEndpoint implements IAuthorizationHandler {
 
     private _getSPNAuthorizationToken(): Q.Promise<string> {        
         var deferred = Q.defer<string>();
-        let webRequest: webClient.WebRequest = {
+        let webRequest: WebRequest = {
             method: "POST",
             uri: this.environmentAuthorityUrl + this.tenantID + "/oauth2/token/",
             body: querystring.stringify({
@@ -90,12 +92,12 @@ export class AzureEndpoint implements IAuthorizationHandler {
             }
         };
 
-        let webRequestOptions: webClient.WebRequestOptions = {
-            retriableStatusCodes: [400, 408, 409, 500, 502, 503, 504]
+        let webRequestOptions: WebRequestOptions = {
+            retriableStatusCodes: [408, 409, 500, 502, 503, 504]
         };
 
-        webClient.sendRequest(webRequest, webRequestOptions).then(
-            (response: webClient.WebResponse) => {
+        this._webClient.sendRequest(webRequest, webRequestOptions).then(
+            (response: WebResponse) => {
                 if (response.statusCode == 200) {
                     deferred.resolve(response.body.access_token);
                 }

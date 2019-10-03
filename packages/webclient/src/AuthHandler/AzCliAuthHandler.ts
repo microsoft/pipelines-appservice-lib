@@ -1,41 +1,50 @@
-import exec = require('@actions/exec');
-import io = require('@actions/io');
-import core = require('@actions/core');
-
+import * as core from '@actions/core';
+import * as exec from '@actions/exec';
+import * as io from '@actions/io';
 import { IAuthorizationHandler } from "./IAuthorizationHandler";
 
-var azCloudDetails, azPath;
-
 export class AzCliAuthHandler implements IAuthorizationHandler{
-    private static endpoint: AzCliAuthHandler;
-    private _subscriptionID: string = '';
-    private _baseUrl: string = 'https://management.azure.com/';
-    private _token: string = '';
+    private constructor() { }
 
-    private constructor(subscriptionId: string) {
-        this._subscriptionID = subscriptionId;
-        this._baseUrl = !!azCloudDetails && azCloudDetails['endpoints']['resourceManager'];
-    }
-
-    public static getEndpoint(param?: string) {
-        if(!this.endpoint) {            
-            this.endpoint = new AzCliAuthHandler(param);
+    public static async getHandler() {
+        if(!this._handler) {            
+            this._handler = new AzCliAuthHandler();
+            await this._handler.initialize();
         }
-        return this.endpoint;
+
+        return this._handler;
     }
 
     public get subscriptionID(): string {
-        return this._subscriptionID;
+        return this._subscriptionId;
     }
 
     public get baseUrl(): string {
-        return this._baseUrl;
+        return this._cloudEndpoints['resourceManager'] || 'https://management.azure.com/';
+    }
+
+    public getCloudSuffixUrl(suffixName: string): string {
+        return this._cloudSuffixes[suffixName];
+    }
+
+    public getCloudEndpointUrl(endpointName: string): string {
+        return this._cloudEndpoints[endpointName];
+    }
+
+    public async initialize() {
+        let azAccountDetails = JSON.parse(await this.executeAzCliCommand('account show'));
+        let azCloudDetails = JSON.parse(await this.executeAzCliCommand('cloud show'));
+
+        this._subscriptionId = azAccountDetails['id'];
+        this._cloudSuffixes = azCloudDetails['suffixes'];
+        this._cloudEndpoints = azCloudDetails['endpoints'];
     }
 
     public async getToken(force?: boolean, args?: string[]): Promise<string> {
         if(!this._token || force) {  
             try {
-                let azAccessToken = JSON.parse(await executeAzCliCommand('account get-access-token', !!args ? args : []));
+                let azAccessToken = JSON.parse(await this.executeAzCliCommand('account get-access-token', !!args ? args : []));
+                console.log(`::add-mask::${azAccessToken}`);
                 this._token = azAccessToken['accessToken'];
             }
             catch(error) {
@@ -43,35 +52,49 @@ export class AzCliAuthHandler implements IAuthorizationHandler{
                 throw error;
             }          
         }
+
         return this._token;
     }
-}
-
-export async function initialize() {  
-    azPath = await io.which("az", true);
-    azCloudDetails = JSON.parse(await executeAzCliCommand('cloud show'));
-}
-
-async function executeAzCliCommand(command: string, args?: string[]): Promise<string> {
-    let stdout = '';
-    let stderr = '';
-   
-    let code = await exec.exec(`"${azPath}" ${command}`, args, {
-        silent: true,
-        listeners: {
-            stdout: (data: Buffer) => {
-                stdout += data.toString();
-            },
-            stderr: (data: Buffer) => {
-              stderr += data.toString();
-            }
+    
+    public static async getAzCliPath(): Promise<string> {
+        if (!this._azCliPath) {
+            this._azCliPath = await io.which('az', true);
         }
-    }); 
 
-    if(code != 0) {
-        core.debug('Failed to fetch Azure access token');
-        throw new Error(stderr);
+        return this._azCliPath;
     }
 
-    return stdout;
+    public async executeAzCliCommand(command: string, args?: string[]): Promise<string> {
+        let azCliPath = await AzCliAuthHandler.getAzCliPath();
+        let stdout = '';
+        let stderr = '';
+
+        try {
+            core.debug(`"${azCliPath}" ${command}`);
+            await exec.exec(`"${azCliPath}" ${command}`, args, {
+                silent: true, // this will prevent priniting access token to console output
+                listeners: {
+                    stdout: (data: Buffer) => {
+                        stdout += data.toString();
+                    },
+                    stderr: (data: Buffer) => {
+                      stderr += data.toString();
+                    }
+                }
+            });
+        }
+        catch(error) {
+            console.log('Failed to fetch Azure access token');
+            throw new Error(stderr);
+        }
+        
+        return stdout;
+    }
+
+    private _token: string = '';
+    private _subscriptionId: string = '';
+    private _cloudSuffixes: {[key: string]: string} = {};
+    private _cloudEndpoints: {[key: string]: string} = {};
+    private static _azCliPath: string;
+    private static _handler: AzCliAuthHandler;
 }

@@ -1,5 +1,5 @@
-import { IAuthorizationHandler } from "./AuthHandler/IAuthorizationHandler";
-import webClient = require("./webClient");
+import { WebClient, WebResponse, WebRequest } from './webClient';
+import { IAuthorizationHandler } from './AuthHandler/IAuthorizationHandler';
 
 export class ApiResult {
     public error: any;
@@ -17,8 +17,8 @@ export class ApiResult {
 
 export class AzureError {
     public code: any;
-    public message: string | undefined;
-    public statusCode: number | undefined;
+    public message?: string;
+    public statusCode?: number;
     public details: any;
 }
 
@@ -26,32 +26,28 @@ export interface ApiCallback {
     (error: any, result?: any, request?: any, response?: any): void
 }
 
-export function ToError(response: webClient.WebResponse): AzureError {
-    var error = new AzureError();
+export function ToError(response: WebResponse): AzureError {
+    let error = new AzureError();
     error.statusCode = response.statusCode;
     error.message = response.body
+
     if (response.body && response.body.error) {
         error.code = response.body.error.code;
         error.message = response.body.error.message;
         error.details = response.body.error.details;
 
-        console.log("##[error]" + error.message);
+        console.log(`##[error] error.message`);
     }
 
     return error;
 }
 
 export class ServiceClient {
-    private endpoint: IAuthorizationHandler;
-    protected baseUrl: string;
-    protected longRunningOperationRetryTimeout: number;
-
-    public subscriptionId: string;
-
-    constructor(endpoint: IAuthorizationHandler, timeout?: number) {
-        this.endpoint = endpoint;
-        this.subscriptionId = this.endpoint.subscriptionID;
-        this.baseUrl = this.endpoint.baseUrl;
+    constructor(handler: IAuthorizationHandler, timeout?: number) {
+        this._webClient = new WebClient();
+        this._handler = handler;
+        this.subscriptionId = this._handler.subscriptionID;
+        this.baseUrl = this._handler.baseUrl;
         this.longRunningOperationRetryTimeout = !!timeout ? timeout : 0; // In minutes
     }
 
@@ -60,14 +56,14 @@ export class ServiceClient {
     }
 
     public getRequestUriForbaseUrl(baseUrl: string, uriFormat: string, parameters: {}, queryParameters?: string[], apiVersion?: string): string {
-        var requestUri = baseUrl + uriFormat;
+        let requestUri = baseUrl + uriFormat;
         requestUri = requestUri.replace('{subscriptionId}', encodeURIComponent(this.subscriptionId));
-        for (var key in parameters) {
+        for (let key in parameters) {
             requestUri = requestUri.replace(key, encodeURIComponent((<any>parameters)[key]));
         }
 
         // trim all duplicate forward slashes in the url
-        var regex = /([^:]\/)\/+/gi;
+        let regex = /([^:]\/)\/+/gi;
         requestUri = requestUri.replace(regex, '$1');
 
         // process query paramerters
@@ -75,6 +71,7 @@ export class ServiceClient {
         if(!!apiVersion) {
             queryParameters.push('api-version=' + encodeURIComponent(apiVersion));
         }
+
         if (queryParameters.length > 0) {
             requestUri += '?' + queryParameters.join('&');
         }
@@ -82,25 +79,26 @@ export class ServiceClient {
         return requestUri
     }
 
-    public async beginRequest(request: webClient.WebRequest, tokenArgs?: string[]): Promise<webClient.WebResponse> {
-        var token = await this.endpoint.getToken(false, tokenArgs);
+    public async beginRequest(request: WebRequest, tokenArgs?: string[]): Promise<WebResponse> {
+        let token = await this._handler.getToken(false, tokenArgs);
 
         request.headers = request.headers || {};
-        request.headers["Authorization"] = "Bearer " + token;
+        request.headers["Authorization"] = `Bearer ${token}`;
         request.headers['Content-Type'] = 'application/json; charset=utf-8';
 
-        var httpResponse = null;
+        let httpResponse = null;
 
         try
         {
-            httpResponse = await webClient.sendRequest(request);
+            httpResponse = await this._webClient.sendRequest(request);
             if (httpResponse.statusCode === 401 && httpResponse.body && httpResponse.body.error && httpResponse.body.error.code === "ExpiredAuthenticationToken") {
                 // The access token might have expire. Re-issue the request after refreshing the token.
-                token = await this.endpoint.getToken(true, tokenArgs);
+                token = await this._handler.getToken(true, tokenArgs);
                 request.headers["Authorization"] = "Bearer " + token;
-                httpResponse = await webClient.sendRequest(request);
+                httpResponse = await this._webClient.sendRequest(request);
             }
-        } catch(exception) {
+        } 
+        catch(exception) {
             let exceptionString: string = exception.toString();
             if(exceptionString.indexOf("Hostname/IP doesn't match certificates's altnames") != -1
                 || exceptionString.indexOf("unable to verify the first certificate") != -1
@@ -115,13 +113,14 @@ export class ServiceClient {
     }
 
     public async accumulateResultFromPagedResult(nextLinkUrl: string): Promise<ApiResult> {
-        var result: any[] = [];
-        while (nextLinkUrl) {
-            var nextRequest: webClient.WebRequest = {
+        let result: any[] = [];
+        while (!!nextLinkUrl) {
+            let nextRequest: WebRequest = {
                 method: 'GET',
                 uri: nextLinkUrl
             };
-            var response = await this.beginRequest(nextRequest);
+
+            let response = await this.beginRequest(nextRequest);
             if (response.statusCode == 200 && response.body) {
                 if (response.body.value) {
                     result = result.concat(response.body.value);
@@ -136,4 +135,10 @@ export class ServiceClient {
 
         return new ApiResult(null, result);
     }
+
+    public subscriptionId: string;
+    protected baseUrl: string;
+    protected longRunningOperationRetryTimeout: number;
+    private _handler: IAuthorizationHandler;
+    private _webClient: WebClient;
 }
