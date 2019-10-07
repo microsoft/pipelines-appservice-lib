@@ -1,6 +1,6 @@
 {
   "name": "actions-secret-parser",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Parse and set repository secrets",
   "main": "lib/index.js",
   "scripts": {
@@ -30,5 +30,8 @@
     "jsonpath": "^1.0.2",
     "xmldom": "^0.1.27",
     "xpath": "0.0.27"
-  }
+  },
+  "files": [
+    "lib/**/**"
+  ]
 }
