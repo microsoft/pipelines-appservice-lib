@@ -1,5 +1,6 @@
-import { WebClient, WebResponse, WebRequest } from './webClient';
-import { IAuthorizationHandler } from './AuthHandler/IAuthorizationHandler';
+import * as core from '@actions/core';
+import { WebClient, WebResponse, WebRequest } from './WebClient';
+import { IAuthorizer } from './Authorizer/IAuthorizer';
 
 export class ApiResult {
     public error: any;
@@ -36,18 +37,18 @@ export function ToError(response: WebResponse): AzureError {
         error.message = response.body.error.message;
         error.details = response.body.error.details;
 
-        console.log(`##[error] error.message`);
+        core.error(error.message);
     }
 
     return error;
 }
 
 export class ServiceClient {
-    constructor(handler: IAuthorizationHandler, timeout?: number) {
+    constructor(handler: IAuthorizer, timeout?: number) {
         this._webClient = new WebClient();
-        this._handler = handler;
-        this.subscriptionId = this._handler.subscriptionID;
-        this.baseUrl = this._handler.baseUrl;
+        this._authorizer = handler;
+        this.subscriptionId = this._authorizer.subscriptionID;
+        this.baseUrl = this._authorizer.baseUrl;
         this.longRunningOperationRetryTimeout = !!timeout ? timeout : 0; // In minutes
     }
 
@@ -80,10 +81,10 @@ export class ServiceClient {
     }
 
     public async beginRequest(request: WebRequest, tokenArgs?: string[]): Promise<WebResponse> {
-        let token = await this._handler.getToken(false, tokenArgs);
+        let token = await this._authorizer.getToken(false, tokenArgs);
 
         request.headers = request.headers || {};
-        request.headers["Authorization"] = `Bearer ${token}`;
+        request.headers['Authorization'] = `Bearer ${token}`;
         request.headers['Content-Type'] = 'application/json; charset=utf-8';
 
         let httpResponse = null;
@@ -93,17 +94,17 @@ export class ServiceClient {
             httpResponse = await this._webClient.sendRequest(request);
             if (httpResponse.statusCode === 401 && httpResponse.body && httpResponse.body.error && httpResponse.body.error.code === "ExpiredAuthenticationToken") {
                 // The access token might have expire. Re-issue the request after refreshing the token.
-                token = await this._handler.getToken(true, tokenArgs);
-                request.headers["Authorization"] = "Bearer " + token;
+                token = await this._authorizer.getToken(true, tokenArgs);
+                request.headers['Authorization'] = `Bearer ${token}`;
                 httpResponse = await this._webClient.sendRequest(request);
             }
         } 
         catch(exception) {
             let exceptionString: string = exception.toString();
             if(exceptionString.indexOf("Hostname/IP doesn't match certificates's altnames") != -1
-                || exceptionString.indexOf("unable to verify the first certificate") != -1
-                || exceptionString.indexOf("unable to get local issuer certificate") != -1) {
-                    console.log('Warning:' + 'ASE_SSLIssueRecommendation');
+                || exceptionString.indexOf('unable to verify the first certificate') != -1
+                || exceptionString.indexOf('unable to get local issuer certificate') != -1) {
+                core.warning('ASE_SSLIssueRecommendation');
             } 
 
             throw exception;
@@ -139,6 +140,6 @@ export class ServiceClient {
     public subscriptionId: string;
     protected baseUrl: string;
     protected longRunningOperationRetryTimeout: number;
-    private _handler: IAuthorizationHandler;
+    private _authorizer: IAuthorizer;
     private _webClient: WebClient;
 }

@@ -26,21 +26,22 @@ export interface WebRequestOptions {
     retryRequestTimedout?: boolean;
 }
 
-export const DEFAULT_RETRIABLE_ERROR_CODES = ["ETIMEDOUT", "ECONNRESET", "ENOTFOUND", "ESOCKETTIMEDOUT", "ECONNREFUSED", "EHOSTUNREACH", "EPIPE", "EA_AGAIN"];
-export const DEFAULT_RETRIABLE_STATUS_CODES = [408, 409, 500, 502, 503, 504];
+const DEFAULT_RETRIABLE_ERROR_CODES = ["ETIMEDOUT", "ECONNRESET", "ENOTFOUND", "ESOCKETTIMEDOUT", "ECONNREFUSED", "EHOSTUNREACH", "EPIPE", "EA_AGAIN"];
+const DEFAULT_RETRIABLE_STATUS_CODES = [408, 409, 500, 502, 503, 504];
+const DEFAULT_RETRY_COUNT = 5;
+const DEFAULT_RETRY_INTERVAL_SECONDS = 2;
 
 export class WebClient {
-
     constructor() {
         this._httpClient = RequestClient.GetInstance();
-   }
+    }
 
     public async sendRequest(request: WebRequest, options?: WebRequestOptions): Promise<WebResponse> {
         let i = 0;
-        let retryCount = options && options.retryCount ? options.retryCount : 5;
-        let retryIntervalInSeconds = options && options.retryIntervalInSeconds ? options.retryIntervalInSeconds : 2;
-        let retriableErrorCodes = options && options.retriableErrorCodes ? options.retriableErrorCodes : ["ETIMEDOUT", "ECONNRESET", "ENOTFOUND", "ESOCKETTIMEDOUT", "ECONNREFUSED", "EHOSTUNREACH", "EPIPE", "EA_AGAIN"];
-        let retriableStatusCodes = options && options.retriableStatusCodes ? options.retriableStatusCodes : [408, 409, 500, 502, 503, 504];
+        let retryCount = options && options.retryCount ? options.retryCount : DEFAULT_RETRY_COUNT;
+        let retryIntervalInSeconds = options && options.retryIntervalInSeconds ? options.retryIntervalInSeconds : DEFAULT_RETRY_INTERVAL_SECONDS;
+        let retriableErrorCodes = options && options.retriableErrorCodes ? options.retriableErrorCodes : DEFAULT_RETRIABLE_ERROR_CODES;
+        let retriableStatusCodes = options && options.retriableStatusCodes ? options.retriableStatusCodes : DEFAULT_RETRIABLE_STATUS_CODES;
         let timeToWait: number = retryIntervalInSeconds;
 
         while (true) {
@@ -68,7 +69,7 @@ export class WebClient {
                 }
                 else {
                     if (error.code) {
-                        console.log(`##[error]${error.code}`);
+                        core.error(error.code);
                     }
 
                     throw error;
@@ -82,7 +83,7 @@ export class WebClient {
         let response: HttpClientResponse = await this._httpClient.request(request.method, request.uri, request.body || '', request.headers);
 
         if (!response) {
-            throw new Error(`Http request: [${request.method}] ${request.uri} returned a null Http response.`);
+            throw new Error(`Unexpected end of request. Http request: [${request.method}] ${request.uri} returned a null Http response.`);
         }
 
         return await this._toWebResponse(response);
@@ -96,7 +97,8 @@ export class WebClient {
                 resBody = JSON.parse(body);
             }
             catch (error) {
-                console.log(`Could not parse response body: ${body}. Error: ${JSON.stringify(error)}`);
+                core.error(`Could not parse response body: ${body}.`);
+                core.error(JSON.stringify(error));
             }
         }
 

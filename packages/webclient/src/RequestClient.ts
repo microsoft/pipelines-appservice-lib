@@ -8,6 +8,8 @@ export class RequestClient {
     private constructor() {
         // Singleton pattern: block from public construction
         RequestClient._options = {};
+        let ignoreSslErrors: string = `${process.env.ACTIONS_AZURE_REST_IGNORE_SSL_ERRORS}`;
+        RequestClient._options.ignoreSslError = !!ignoreSslErrors && ignoreSslErrors.toLowerCase() === "true";
         RequestClient._instance = new HttpClient(`${process.env.AZURE_HTTP_USER_AGENT}`, undefined, RequestClient._options);
     }
 
@@ -15,6 +17,7 @@ export class RequestClient {
         if (RequestClient._instance === undefined) {
             new RequestClient(); 
         }
+
         return RequestClient._instance;
     }
 
