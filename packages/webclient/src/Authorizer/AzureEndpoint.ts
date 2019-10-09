@@ -1,6 +1,6 @@
 import Q = require('q');
 import fs = require('fs');
-import { WebClient, WebResponse, WebRequest, WebRequestOptions } from "../webClient";
+import { WebClient, WebResponse, WebRequest, WebRequestOptions } from "../WebClient";
 import querystring = require('querystring');
 
 import { IAuthorizer } from "./IAuthorizer";
