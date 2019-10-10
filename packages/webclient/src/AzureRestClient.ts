@@ -99,8 +99,14 @@ export class ServiceClient {
                 httpResponse = await this._webClient.sendRequest(request);
             }
         } 
-        catch(error) {
-            throw error;
+        catch(exception) {
+            let exceptionString: string = exception.toString();
+            if(exceptionString.indexOf("Hostname/IP doesn't match certificates's altnames") != -1
+                || exceptionString.indexOf("unable to verify the first certificate") != -1
+                || exceptionString.indexOf("unable to get local issuer certificate") != -1) {
+                
+                core.warning("You're probably using a self-signed certificate in the SSL certificate validation chain. To resolve them you need to export a variable named ACTIONS_AZURE_REST_IGNORE_SSL_ERRORS to the value true.");
+            }
         }
 
         return httpResponse;
