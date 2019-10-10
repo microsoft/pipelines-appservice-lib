@@ -99,15 +99,8 @@ export class ServiceClient {
                 httpResponse = await this._webClient.sendRequest(request);
             }
         } 
-        catch(exception) {
-            let exceptionString: string = exception.toString();
-            if(exceptionString.indexOf("Hostname/IP doesn't match certificates's altnames") != -1
-                || exceptionString.indexOf('unable to verify the first certificate') != -1
-                || exceptionString.indexOf('unable to get local issuer certificate') != -1) {
-                core.warning('ASE_SSLIssueRecommendation');
-            } 
-
-            throw exception;
+        catch(error) {
+            throw error;
         }
 
         return httpResponse;

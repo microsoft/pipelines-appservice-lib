@@ -35,7 +35,7 @@ export class AzureCLIAuthorizer implements IAuthorizer{
         if(!this._token || force) {  
             try {
                 let azAccessToken = JSON.parse(await AzureCLIAuthorizer.executeAzCliCommand('account get-access-token', !!args ? args : []));
-                console.log(`::add-mask::${azAccessToken}`);
+                core.setSecret(azAccessToken);
                 this._token = azAccessToken['accessToken'];
             }
             catch(error) {
@@ -47,16 +47,8 @@ export class AzureCLIAuthorizer implements IAuthorizer{
         return this._token;
     }
     
-    public static async getAzCliPath(): Promise<string> {
-        if (!this._azCliPath) {
-            this._azCliPath = await io.which('az', true);
-        }
-
-        return this._azCliPath;
-    }
-
     public static async executeAzCliCommand(command: string, args?: string[]): Promise<string> {
-        let azCliPath = await AzureCLIAuthorizer.getAzCliPath();
+        let azCliPath = await AzureCLIAuthorizer._getAzCliPath();
         let stdout = '';
         let stderr = '';
 
@@ -79,6 +71,14 @@ export class AzureCLIAuthorizer implements IAuthorizer{
         }
         
         return stdout;
+    }
+
+    private static async _getAzCliPath(): Promise<string> {
+        if (!this._azCliPath) {
+            this._azCliPath = await io.which('az', true);
+        }
+
+        return this._azCliPath;
     }
 
     private async _initialize() {
