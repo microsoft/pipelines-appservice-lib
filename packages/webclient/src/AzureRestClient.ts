@@ -44,9 +44,9 @@ export function ToError(response: WebResponse): AzureError {
 }
 
 export class ServiceClient {
-    constructor(handler: IAuthorizer, timeout?: number) {
+    constructor(authorizer: IAuthorizer, timeout?: number) {
         this._webClient = new WebClient();
-        this._authorizer = handler;
+        this._authorizer = authorizer;
         this.subscriptionId = this._authorizer.subscriptionID;
         this.baseUrl = this._authorizer.baseUrl;
         this.longRunningOperationRetryTimeout = !!timeout ? timeout : 0; // In minutes
