@@ -8,8 +8,8 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "npm run build"
+    "copypackage": "copy package.json lib",
+    "dist": "npm run build && npm run copypackage && cd lib && npm publish"
   },
   "repository": {
     "type": "git",
