@@ -1,6 +1,6 @@
 {
   "name": "azure-actions-webclient",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Authorize to azure and make rest calls",
   "keywords": [
     "webclient",
