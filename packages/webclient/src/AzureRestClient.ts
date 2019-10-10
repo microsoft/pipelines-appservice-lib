@@ -106,6 +106,7 @@ export class ServiceClient {
                 || exceptionString.indexOf("unable to get local issuer certificate") != -1) {
                 
                 core.warning("You're probably using a self-signed certificate in the SSL certificate validation chain. To resolve them you need to export a variable named ACTIONS_AZURE_REST_IGNORE_SSL_ERRORS to the value true.");
+                throw exception;
             }
         }
 
