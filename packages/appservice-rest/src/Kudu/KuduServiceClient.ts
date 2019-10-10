@@ -39,7 +39,7 @@ export class KuduServiceClient {
                 if(exceptionString.indexOf("Hostname/IP doesn't match certificates's altnames") != -1
                     || exceptionString.indexOf("unable to verify the first certificate") != -1
                     || exceptionString.indexOf("unable to get local issuer certificate") != -1) {
-                        core.warning('To use a certificate in App Service, the certificate must be signed by a trusted certificate authority. If your web app gives you certificate validation errors, you\'re probably using a self-signed certificate and to resolve them you need to set a variable named VSTS_ARM_REST_IGNORE_SSL_ERRORS to the value true in the build or release definition');
+                        core.warning('To use a certificate in App Service, the certificate must be signed by a trusted certificate authority. If your web app gives you certificate validation errors, you\'re probably using a self-signed certificate and to resolve them you need to export variable named ACTIONS_AZURE_REST_IGNORE_SSL_ERRORS to the value true.');
                 }
 
                 if(retryCount > 0 && exceptionString.indexOf('Request timeout') != -1 && (!reqOptions || reqOptions.retryRequestTimedout)) {
