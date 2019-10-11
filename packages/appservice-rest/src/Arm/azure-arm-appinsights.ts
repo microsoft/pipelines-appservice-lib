@@ -1,7 +1,9 @@
 import core = require('@actions/core');
-import webClient = require('azure-actions-webclient/lib/webClient');
-import { ServiceClient, ToError } from 'azure-actions-webclient/lib/AzureRestClient';
-import { IAuthorizationHandler } from 'azure-actions-webclient/lib/AuthHandler/IAuthorizationHandler';
+
+import { ServiceClient, ToError } from 'azure-actions-webclient/AzureRestClient';
+
+import { IAuthorizer } from 'azure-actions-webclient/Authorizer/IAuthorizer';
+import { WebRequest } from 'azure-actions-webclient/WebClient';
 import { getFormattedError } from './ErrorHandlerUtility';
 
 export interface ApplicationInsights {
@@ -20,14 +22,14 @@ export class AzureApplicationInsights {
     private _resourceGroupName: string;
     private _client: ServiceClient;
 
-    constructor(endpoint: IAuthorizationHandler, resourceGroupName: string, name: string) {
+    constructor(endpoint: IAuthorizer, resourceGroupName: string, name: string) {
         this._client = new ServiceClient(endpoint, 30);
         this._resourceGroupName = resourceGroupName;
         this._name = name;
     }
 
     public async addReleaseAnnotation(annotation: any): Promise<void> {
-        var httpRequest: webClient.WebRequest = {
+        var httpRequest: WebRequest = {
             method: 'PUT',
             body: JSON.stringify(annotation),
             uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/components/{resourceName}/Annotations`,
@@ -60,13 +62,13 @@ export class AzureApplicationInsights {
 export class ApplicationInsightsResources {
     private _client: ServiceClient;
 
-    constructor(endpoint: IAuthorizationHandler) {
+    constructor(endpoint: IAuthorizer) {
         this._client = new ServiceClient(endpoint, 30);
     }
 
     public async list(resourceGroupName?: string, filter?: string[]): Promise<ApplicationInsights[]> {
         resourceGroupName = resourceGroupName ? `resourceGroups/${resourceGroupName}` : '';
-        var httpRequest: webClient.WebRequest = {
+        var httpRequest: WebRequest = {
             method: 'GET',
             uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/${resourceGroupName}/providers/microsoft.insights/components`,
             {}, filter, '2015-05-01')
