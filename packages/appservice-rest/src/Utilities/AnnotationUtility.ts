@@ -3,11 +3,11 @@ import core = require('@actions/core');
 import { ApplicationInsightsResources, AzureApplicationInsights } from "../Arm/azure-arm-appinsights";
 
 import { AzureAppService } from "../Arm/azure-app-service";
-import { IAuthorizationHandler } from "azure-actions-webclient/lib/AuthHandler/IAuthorizationHandler";
+import { IAuthorizer } from "azure-actions-webclient/Authorizer/IAuthorizer";
 
 var uuidV4 = require("uuid/v4");
 
-export async function addAnnotation(endpoint: IAuthorizationHandler, azureAppService: AzureAppService, isDeploymentSuccess: boolean): Promise<void> {
+export async function addAnnotation(endpoint: IAuthorizer, azureAppService: AzureAppService, isDeploymentSuccess: boolean): Promise<void> {
     try {
         var appSettings = await azureAppService.getApplicationSettings();
         var instrumentationKey = appSettings && appSettings.properties && appSettings.properties.APPINSIGHTS_INSTRUMENTATIONKEY;

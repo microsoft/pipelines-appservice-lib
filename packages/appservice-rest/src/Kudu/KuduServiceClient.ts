@@ -1,18 +1,22 @@
 import util = require('util');
-import webClient = require('azure-actions-webclient/lib/webClient');
+
+import { WebClient, WebRequest, WebRequestOptions, WebResponse } from 'azure-actions-webclient/webClient';
+
 import core = require('@actions/core');
 
 export class KuduServiceClient {
     private _scmUri;
     private _accesssToken: string;
     private _cookie: string[];
+    private _webClient: WebClient;
 
     constructor(scmUri: string, accessToken: string) {
         this._accesssToken = accessToken;
         this._scmUri = scmUri;
+        this._webClient = new WebClient();
     }
 
-    public async beginRequest(request: webClient.WebRequest, reqOptions?: webClient.WebRequestOptions, contentType?: string): Promise<webClient.WebResponse> {
+    public async beginRequest(request: WebRequest, reqOptions?: WebRequestOptions, contentType?: string): Promise<WebResponse> {
         request.headers = request.headers || {};
         request.headers["Authorization"] = "Basic " + this._accesssToken;
         request.headers['Content-Type'] = contentType || 'application/json; charset=utf-8';
@@ -26,7 +30,7 @@ export class KuduServiceClient {
 
         while(retryCount >= 0) {
             try {
-                let httpResponse = await webClient.sendRequest(request, reqOptions);
+                let httpResponse = await this._webClient.sendRequest(request, reqOptions);
                 if(httpResponse.headers['set-cookie'] && !this._cookie) {
                     this._cookie = httpResponse.headers['set-cookie'];
                     core.debug(`loaded affinity cookie ${JSON.stringify(this._cookie)}`);
