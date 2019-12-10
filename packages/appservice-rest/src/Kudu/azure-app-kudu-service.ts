@@ -1,9 +1,10 @@
 import fs = require('fs');
 
+import { WebRequest, WebRequestOptions } from 'azure-actions-webclient/webClient';
+
 import { KuduServiceClient } from './KuduServiceClient';
 import { exists } from '@actions/io/lib/io-util';
 
-import webClient = require('azure-actions-webclient/lib/webClient');
 import core = require('@actions/core');
 
 export const KUDU_DEPLOYMENT_CONSTANTS = {
@@ -20,14 +21,14 @@ export class Kudu {
     }
 
     public async updateDeployment(requestBody: any): Promise<string> {
-        var httpRequest: webClient.WebRequest = {
+        var httpRequest: WebRequest = {
             method: 'PUT',
             body: JSON.stringify(requestBody),
             uri: this._client.getRequestUri(`/api/deployments/${requestBody.id}`)
         };
 
         try {
-            let webRequestOptions: webClient.WebRequestOptions = {retriableErrorCodes: [], retriableStatusCodes: null, retryCount: 5, retryIntervalInSeconds: 5, retryRequestTimedout: true};
+            let webRequestOptions: WebRequestOptions = {retriableErrorCodes: [], retriableStatusCodes: null, retryCount: 5, retryIntervalInSeconds: 5, retryRequestTimedout: true};
             var response = await this._client.beginRequest(httpRequest, webRequestOptions);
             core.debug(`updateDeployment. Data: ${JSON.stringify(response)}`);
             if(response.statusCode == 200) {
@@ -43,7 +44,7 @@ export class Kudu {
     }
 
     public async getAppSettings(): Promise<Map<string, string>> {
-        var httpRequest: webClient.WebRequest = {
+        var httpRequest: WebRequest = {
             method: 'GET',
             uri: this._client.getRequestUri(`/api/settings`)
         };
@@ -63,7 +64,7 @@ export class Kudu {
     }
 
     public async runCommand(physicalPath: string, command: string): Promise<void> {
-        var httpRequest: webClient.WebRequest = {
+        var httpRequest: WebRequest = {
             method: 'POST',
             uri: this._client.getRequestUri(`/api/command`),
             headers: {
@@ -78,7 +79,7 @@ export class Kudu {
 
         try {
             core.debug('Executing Script on Kudu. Command: ' + command);
-            let webRequestOptions: webClient.WebRequestOptions = {retriableErrorCodes: null, retriableStatusCodes: null, retryCount: 5, retryIntervalInSeconds: 5, retryRequestTimedout: false};
+            let webRequestOptions: WebRequestOptions = {retriableErrorCodes: null, retriableStatusCodes: null, retryCount: 5, retryIntervalInSeconds: 5, retryRequestTimedout: false};
             var response = await this._client.beginRequest(httpRequest, webRequestOptions);
             core.debug(`runCommand. Data: ${JSON.stringify(response)}`);
             if(response.statusCode == 200) {
@@ -96,7 +97,7 @@ export class Kudu {
     public async extractZIP(webPackage: string, physicalPath: string): Promise<void> {
         physicalPath = physicalPath.replace(/[\\]/g, "/");
         physicalPath = physicalPath[0] == "/" ? physicalPath.slice(1): physicalPath;
-        var httpRequest: webClient.WebRequest = {
+        var httpRequest: WebRequest = {
             method: 'PUT',
             uri: this._client.getRequestUri(`/api/zip/${physicalPath}/`),
             headers: {
@@ -122,7 +123,7 @@ export class Kudu {
     }
 
     public async zipDeploy(webPackage: string, queryParameters?: Array<string>): Promise<any> {
-        let httpRequest: webClient.WebRequest = {
+        let httpRequest: WebRequest = {
             method: 'POST',
             uri: this._client.getRequestUri(`/api/zipdeploy`, queryParameters),
             body: fs.createReadStream(webPackage)
@@ -156,7 +157,7 @@ export class Kudu {
     }
 
     public async warDeploy(webPackage: string, queryParameters?: Array<string>): Promise<any> {
-        let httpRequest: webClient.WebRequest = {
+        let httpRequest: WebRequest = {
             method: 'POST',
             uri: this._client.getRequestUri(`/api/wardeploy`, queryParameters),
             body: fs.createReadStream(webPackage)
@@ -192,7 +193,7 @@ export class Kudu {
 
     public async getDeploymentDetails(deploymentID: string): Promise<any> {
         try {
-            var httpRequest: webClient.WebRequest = {
+            var httpRequest: WebRequest = {
                 method: 'GET',
                 uri: this._client.getRequestUri(`/api/deployments/${deploymentID}`)
             };
@@ -211,7 +212,7 @@ export class Kudu {
 
     public async getDeploymentLogs(log_url: string): Promise<any> {
         try {
-            var httpRequest: webClient.WebRequest = {
+            var httpRequest: WebRequest = {
                 method: 'GET',
                 uri: log_url
             };
@@ -231,7 +232,7 @@ export class Kudu {
     public async getFileContent(physicalPath: string, fileName: string): Promise<string> {
         physicalPath = physicalPath.replace(/[\\]/g, "/");
         physicalPath = physicalPath[0] == "/" ? physicalPath.slice(1): physicalPath;
-        var httpRequest: webClient.WebRequest = {
+        var httpRequest: WebRequest = {
             method: 'GET',
             uri: this._client.getRequestUri(`/api/vfs/${physicalPath}/${fileName}`),
             headers: {
@@ -264,7 +265,7 @@ export class Kudu {
             throw new Error('FilePathInvalid' + filePath);
         }
 
-        var httpRequest: webClient.WebRequest = {
+        var httpRequest: WebRequest = {
             method: 'PUT',
             uri: this._client.getRequestUri(`/api/vfs/${physicalPath}/${fileName}`),
             headers: {
@@ -290,7 +291,7 @@ export class Kudu {
     public async deleteFile(physicalPath: string, fileName: string): Promise<void> {
         physicalPath = physicalPath.replace(/[\\]/g, "/");
         physicalPath = physicalPath[0] == "/" ? physicalPath.slice(1): physicalPath;
-        var httpRequest: webClient.WebRequest = {
+        var httpRequest: WebRequest = {
             method: 'DELETE',
             uri: this._client.getRequestUri(`/api/vfs/${physicalPath}/${fileName}`),
             headers: {
@@ -314,7 +315,7 @@ export class Kudu {
     }
 
     private async _getDeploymentDetailsFromPollURL(pollURL: string):Promise<any> {
-        let httpRequest: webClient.WebRequest = {
+        let httpRequest: WebRequest = {
             method: 'GET',
             uri: pollURL,
             headers: {}
@@ -330,7 +331,7 @@ export class Kudu {
                 }
                 else {
                     core.debug(`Deployment status: ${result.status} '${result.status_text}'. retry after 5 seconds`);
-                    await webClient.sleepFor(5);
+                    await this._sleep(5);
                     continue;
                 }
             }
@@ -353,5 +354,11 @@ export class Kudu {
         }
 
         return error;
+    }
+
+    private _sleep(sleepDurationInSeconds: number): Promise<any> {
+        return new Promise((resolve) => {
+            setTimeout(resolve, sleepDurationInSeconds * 1000);
+        });
     }
 }

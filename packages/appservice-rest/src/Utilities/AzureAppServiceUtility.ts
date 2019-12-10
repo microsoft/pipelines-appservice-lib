@@ -1,7 +1,8 @@
+import { WebClient, WebRequest, WebRequestOptions } from 'azure-actions-webclient/WebClient';
+
 import { AzureAppService } from '../Arm/azure-app-service';
 import { Kudu } from '../Kudu/azure-app-kudu-service';
 
-import webClient = require('azure-actions-webclient/lib/webClient');
 import Q = require('q');
 import core = require('@actions/core');
 
@@ -10,8 +11,11 @@ var parseString = require('xml2js').parseString;
 
 export class AzureAppServiceUtility {
     private _appService: AzureAppService;
+    private _webClient: WebClient;
+
     constructor(appService: AzureAppService) {
         this._appService = appService;
+        this._webClient = new WebClient();
     }
 
     public async getWebDeployPublishingProfile(): Promise<any> {
@@ -49,24 +53,24 @@ export class AzureAppServiceUtility {
                 core.debug("Application Url not found.");
                 return;
             }
-            await AzureAppServiceUtility.pingApplication(applicationUrl);
+            await this.pingApplicationWithUrl(applicationUrl);
         } catch(error) {
             core.debug("Unable to ping App Service. Error: ${error}");
         }
     }
 
-    public static async pingApplication(applicationUrl: string) {
+    public async pingApplicationWithUrl(applicationUrl: string) {
         if(!applicationUrl) {
             core.debug('Application Url empty.');
             return;
         }
         try {
-            var webRequest: webClient.WebRequest = {
+            var webRequest: WebRequest = {
                 method: 'GET',
                 uri: applicationUrl
             };
-            let webRequestOptions: webClient.WebRequestOptions = {retriableErrorCodes: [], retriableStatusCodes: [], retryCount: 1, retryIntervalInSeconds: 5, retryRequestTimedout: true};
-            var response = await webClient.sendRequest(webRequest, webRequestOptions);
+            let webRequestOptions: WebRequestOptions = {retriableErrorCodes: [], retriableStatusCodes: [], retryCount: 1, retryIntervalInSeconds: 5, retryRequestTimedout: true};
+            var response = await this._webClient.sendRequest(webRequest, webRequestOptions);
             core.debug(`App Service status Code: '${response.statusCode}'. Status Message: '${response.statusMessage}'`);
         }
         catch(error) {

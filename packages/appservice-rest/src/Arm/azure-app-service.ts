@@ -1,13 +1,14 @@
 import {
     ServiceClient,
     ToError
-} from 'azure-actions-webclient/lib/AzureRestClient';
+} from 'azure-actions-webclient/AzureRestClient';
 
-import { IAuthorizationHandler } from 'azure-actions-webclient/lib/AuthHandler/IAuthorizationHandler';
+import { IAuthorizer } from 'azure-actions-webclient/Authorizer/IAuthorizer';
+import { WebRequest } from 'azure-actions-webclient/webClient';
 import { getFormattedError } from './ErrorHandlerUtility';
 
 import core = require('@actions/core');
-import webClient = require('azure-actions-webclient/lib/webClient');
+
 
 interface AzureAppServiceConfigurationDetails {
     id: string;
@@ -34,7 +35,7 @@ export class AzureAppService {
     private _appServiceConnectionString: AzureAppServiceConfigurationDetails;
     private _isConsumptionApp: boolean;
 
-    constructor(endpoint: IAuthorizationHandler, resourceGroup: string, name: string, slot?: string, appKind?: string, isConsumptionApp?: boolean) {
+    constructor(endpoint: IAuthorizer, resourceGroup: string, name: string, slot?: string, appKind?: string, isConsumptionApp?: boolean) {
         this._client = new ServiceClient(endpoint, 30);
         this._resourceGroup = resourceGroup;
         this._name = name;
@@ -54,7 +55,7 @@ export class AzureAppService {
     public async restart(): Promise<void> {
         try {
             var slotUrl: string = !!this._slot ? `/slots/${this._slot}` : '';
-            var webRequest: webClient.WebRequest = {
+            var webRequest: WebRequest = {
                 method: 'POST',
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{ResourceGroupName}/providers/Microsoft.Web/sites/{name}/${slotUrl}/restart`, {
                     '{ResourceGroupName}': this._resourceGroup,
@@ -85,7 +86,7 @@ export class AzureAppService {
 
     public async getPublishingCredentials(): Promise<any> {
         try {
-            var httpRequest: webClient.WebRequest = {
+            var httpRequest: WebRequest = {
                 method: 'POST',
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/config/publishingcredentials/list`,
                     {
@@ -116,7 +117,7 @@ export class AzureAppService {
 
     public async updateApplicationSettings(applicationSettings): Promise<AzureAppServiceConfigurationDetails> {
         try {
-            var httpRequest: webClient.WebRequest = {
+            var httpRequest: WebRequest = {
                 method: 'PUT',
                 body: JSON.stringify(applicationSettings),
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/config/appsettings`,
@@ -195,7 +196,7 @@ export class AzureAppService {
             let retryCount = 5;
             let retryIntervalInSeconds = 2;
             let timeToWait: number = retryIntervalInSeconds;
-            var httpRequest: webClient.WebRequest = {
+            var httpRequest: WebRequest = {
                 method: 'POST',
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/hostruntime/admin/host/synctriggers`,
                 {
@@ -211,7 +212,7 @@ export class AzureAppService {
                 }
                 else if(response.statusCode == 400) {
                     if (++i < retryCount) {
-                        await webClient.sleepFor(timeToWait);
+                        await this._sleep(timeToWait);
                         timeToWait = timeToWait * retryIntervalInSeconds + retryIntervalInSeconds;
                         continue;
                     }
@@ -231,7 +232,7 @@ export class AzureAppService {
 
     public async getConfiguration(): Promise<AzureAppServiceConfigurationDetails> {
         try {
-            var httpRequest: webClient.WebRequest = {
+            var httpRequest: WebRequest = {
                 method: 'GET',
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/config/web`,
                     {
@@ -254,7 +255,7 @@ export class AzureAppService {
 
     public async updateConfiguration(applicationSettings): Promise<AzureAppServiceConfigurationDetails> {
         try {
-            var httpRequest: webClient.WebRequest = {
+            var httpRequest: WebRequest = {
                 method: 'PUT',
                 body: JSON.stringify(applicationSettings),
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/config/web`,
@@ -278,7 +279,7 @@ export class AzureAppService {
 
     public async patchConfiguration(properties: any): Promise<any> {
         try {
-            var httpRequest: webClient.WebRequest = {
+            var httpRequest: WebRequest = {
                 method: 'PATCH',
                 body: JSON.stringify(properties),
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/config/web`,
@@ -338,7 +339,7 @@ export class AzureAppService {
     public async updateConnectionStrings(connectionStringSettings: any): Promise<AzureAppServiceConfigurationDetails> {
         try {
             var slotUrl: string = !!this._slot ? `/slots/${this._slot}` : '';
-            var httpRequest: webClient.WebRequest = {
+            var httpRequest: WebRequest = {
                 method: 'PUT',
                 body: JSON.stringify(connectionStringSettings),
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${slotUrl}/config/connectionstrings`,
@@ -383,7 +384,7 @@ export class AzureAppService {
 
     public async updateSlotConfigSettings(SlotConfigSettings: any): Promise<AzureAppServiceConfigurationDetails> {
         try {
-            var httpRequest: webClient.WebRequest = {
+            var httpRequest: WebRequest = {
                 method: 'PUT',
                 body: JSON.stringify(SlotConfigSettings),
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/config/slotConfigNames`,
@@ -407,7 +408,7 @@ export class AzureAppService {
 
     public async getMetadata(): Promise<AzureAppServiceConfigurationDetails> {
         try {
-            var httpRequest: webClient.WebRequest = {
+            var httpRequest: WebRequest = {
                 method: 'POST',
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/config/metadata/list`,
                 {
@@ -430,7 +431,7 @@ export class AzureAppService {
 
     public async updateMetadata(applicationSettings): Promise<AzureAppServiceConfigurationDetails> {
         try {
-            var httpRequest: webClient.WebRequest = {
+            var httpRequest: WebRequest = {
                 method: 'PUT',
                 body: JSON.stringify(applicationSettings),
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/config/metadata`,
@@ -467,7 +468,7 @@ export class AzureAppService {
 
     private async _getPublishingProfileWithSecrets(): Promise<any> {
         try {
-            var httpRequest: webClient.WebRequest = {
+            var httpRequest: WebRequest = {
                 method: 'POST',
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/publishxml`,
                 {
@@ -491,7 +492,7 @@ export class AzureAppService {
 
     private async _getApplicationSettings(): Promise<AzureAppServiceConfigurationDetails> {
         try {
-            var httpRequest: webClient.WebRequest = {
+            var httpRequest: WebRequest = {
                 method: 'POST',
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/config/appsettings/list`,
                 {
@@ -515,7 +516,7 @@ export class AzureAppService {
     private async _getConnectionStrings(): Promise<AzureAppServiceConfigurationDetails> {
         try {
             var slotUrl: string = !!this._slot ? `/slots/${this._slot}` : '';
-            var httpRequest: webClient.WebRequest = {
+            var httpRequest: WebRequest = {
                 method: 'POST',
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${slotUrl}/config/connectionstrings/list`,
                     {
@@ -538,7 +539,7 @@ export class AzureAppService {
 
     private async _getSlotConfigurationNames(): Promise<AzureAppServiceConfigurationDetails> {
         try {
-            var httpRequest: webClient.WebRequest = {
+            var httpRequest: WebRequest = {
                 method: 'GET',
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/config/slotConfigNames`,
                 {
@@ -561,7 +562,7 @@ export class AzureAppService {
 
     private async _get(): Promise<AzureAppServiceConfigurationDetails> {
         try {
-            var httpRequest: webClient.WebRequest = {
+            var httpRequest: WebRequest = {
                 method: 'GET',
                 uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}`,
                     {
@@ -589,5 +590,11 @@ export class AzureAppService {
 
     public getName(): string {
         return this._name;
+    }
+
+    private _sleep(sleepDurationInSeconds: number): Promise<any> {
+        return new Promise((resolve) => {
+            setTimeout(resolve, sleepDurationInSeconds * 1000);
+        });
     }
  }

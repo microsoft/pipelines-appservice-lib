@@ -1,6 +1,6 @@
 {
   "name": "azure-actions-appservice-rest",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Azure resource manager and kudu node rest module",
   "keywords": [
     "appservice",
@@ -9,7 +9,8 @@
   "scripts": {
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "npm run build"
+    "copypackage": "copy package.json lib",
+    "dist": "npm run build && npm run copypackage && cd lib && npm publish"
   },
   "repository": {
     "type": "git",
@@ -27,12 +28,9 @@
   "dependencies": {
     "@actions/core": "^1.1.1",
     "@actions/io": "^1.0.1",
-    "azure-actions-webclient": "^1.0.1",
+    "azure-actions-webclient": "^1.0.4",
     "fs": "0.0.1-security",
     "util": "^0.12.1",
     "xml2js": "^0.4.22"
-  },
-  "files": [
-    "lib/**/**"
-  ]
+  }
 }
