@@ -1,6 +1,6 @@
 {
   "name": "azure-actions-appservice-rest",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "Azure resource manager and kudu node rest module",
   "keywords": [
     "appservice",
@@ -28,9 +28,10 @@
   "dependencies": {
     "@actions/core": "^1.1.1",
     "@actions/io": "^1.0.1",
-    "azure-actions-webclient": "^1.0.4",
+    "azure-actions-webclient": "^1.0.6",
     "fs": "0.0.1-security",
     "util": "^0.12.1",
+    "uuid": "^3.3.3",
     "xml2js": "^0.4.22"
   }
 }

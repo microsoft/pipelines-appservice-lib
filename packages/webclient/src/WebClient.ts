@@ -1,6 +1,8 @@
 import * as core from '@actions/core';
 import * as fs from 'fs';
+
 import { HttpClient, HttpClientResponse } from "typed-rest-client/HttpClient";
+
 import { RequestClient } from './RequestClient';
 
 export interface WebRequest {
@@ -97,8 +99,17 @@ export class WebClient {
                 resBody = JSON.parse(body);
             }
             catch (error) {
-                core.error(`Could not parse response body: ${body}.`);
-                core.error(JSON.stringify(error));
+                let err = error;
+                try {
+                    // if body is xml string instead of json
+                    let parser = new DOMParser();
+                    resBody = parser.parseFromString(body, "text/xml");
+                }
+                catch (error) {
+                    err += error;
+                    core.error(`Could not parse response body: ${body}.`);
+                    core.error(JSON.stringify(err));
+                }
             }
         }
 
