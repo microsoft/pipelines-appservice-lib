@@ -99,17 +99,8 @@ export class WebClient {
                 resBody = JSON.parse(body);
             }
             catch (error) {
-                let err = error;
-                try {
-                    // if body is xml string instead of json
-                    let parser = new DOMParser();
-                    resBody = parser.parseFromString(body, "text/xml");
-                }
-                catch (error) {
-                    err += error;
-                    core.error(`Could not parse response body: ${body}.`);
-                    core.error(JSON.stringify(err));
-                }
+                core.debug(`Could not parse response body: ${body}.`);
+                core.debug(JSON.stringify(error));
             }
         }
 
