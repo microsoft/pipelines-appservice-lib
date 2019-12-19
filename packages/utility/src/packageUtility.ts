@@ -43,7 +43,7 @@ export class Package {
         return this._isMSBuildPackage;
     }
 
-    public async getPackageType(): Promise<PackageType> {
+    public getPackageType(): PackageType {
         if (this._packageType == undefined) {
             if (!exist(this._path)) {
                 throw new Error('Invalidwebapppackageorfolderpathprovided' + this._path);
