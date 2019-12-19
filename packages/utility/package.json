@@ -1,12 +1,13 @@
 {
   "name": "azure-actions-utility",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "file and text transformation utilities ",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "npm run build"
+    "copypackage": "copy package.json lib",
+    "dist": "npm run build && npm run copypackage && cd lib && npm publish"
   },
   "keywords": [
     "actions",
@@ -25,9 +26,6 @@
   "devDependencies": {
     "typescript": "^3.6.3"
   },
-  "files": [
-    "lib/**/*"
-  ],
   "dependencies": {
     "@actions/core": "^1.1.1",
     "@actions/io": "^1.0.1",
