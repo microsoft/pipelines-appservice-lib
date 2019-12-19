@@ -1,6 +1,6 @@
 {
   "name": "azure-actions-appservice-rest",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Azure resource manager and kudu node rest module",
   "keywords": [
     "appservice",

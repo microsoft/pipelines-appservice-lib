@@ -1,7 +1,7 @@
 import { ServiceClient, ToError } from 'azure-actions-webclient/AzureRestClient';
 
 import { IAuthorizer } from 'azure-actions-webclient/Authorizer/IAuthorizer';
-import { WebRequest } from 'azure-actions-webclient/webClient';
+import { WebRequest } from 'azure-actions-webclient/WebClient';
 import { getFormattedError } from './ErrorHandlerUtility';
 
 export class Resources {

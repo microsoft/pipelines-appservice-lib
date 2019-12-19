@@ -1,6 +1,6 @@
 import fs = require('fs');
 
-import { WebRequest, WebRequestOptions } from 'azure-actions-webclient/webClient';
+import { WebRequest, WebRequestOptions } from 'azure-actions-webclient/WebClient';
 
 import { KuduServiceClient } from './KuduServiceClient';
 import { exists } from '@actions/io/lib/io-util';
