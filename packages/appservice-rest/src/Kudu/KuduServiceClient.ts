@@ -1,6 +1,6 @@
 import util = require('util');
 
-import { WebClient, WebRequest, WebRequestOptions, WebResponse } from 'azure-actions-webclient/webClient';
+import { WebClient, WebRequest, WebRequestOptions, WebResponse } from 'azure-actions-webclient/WebClient';
 
 import core = require('@actions/core');
 
