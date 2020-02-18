@@ -99,7 +99,7 @@ export class WebClient {
                 resBody = JSON.parse(body);
             }
             catch (error) {
-                core.debug(`Could not parse response body: ${body}.`);
+                core.debug(`Could not parse response body.`);
                 core.debug(JSON.stringify(error));
             }
         }
