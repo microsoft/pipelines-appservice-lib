@@ -4,7 +4,6 @@ import { Kudu } from '../Kudu/azure-app-kudu-service';
 import core = require('@actions/core');
 import path = require('path');
 import fs = require('fs');
-import { type } from 'os';
 
 const deploymentFolder: string = 'site/deployments';
 const manifestFileName: string = 'manifest';
