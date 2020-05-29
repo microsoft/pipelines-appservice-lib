@@ -4,6 +4,7 @@ import { Kudu } from '../Kudu/azure-app-kudu-service';
 import core = require('@actions/core');
 import path = require('path');
 import fs = require('fs');
+import { type } from 'os';
 
 const deploymentFolder: string = 'site/deployments';
 const manifestFileName: string = 'manifest';
@@ -195,5 +196,20 @@ export class KuduServiceUtility {
             author : `${process.env.GITHUB_ACTOR}`,
             deployer : 'GitHub'
         };
+    }
+
+    public async deployWebAppImage(appName: string, images: string, isLinux: boolean) {
+        if (!isLinux) {
+            throw new Error("Windows Containerized web app or multi container support is not available for Publish profile auth scheme.");
+        } 
+        try {
+            console.log(`##[debug]Deploying image ${images} to the webapp ${appName}`);
+            let headers = {'LinuxFxVersion': images};
+            await this._webAppKuduService.imageDeploy(headers);
+        }
+        catch(error) {
+            core.error('Failed to deploy image to Container web app.');
+            throw error;
+        }
     }
 }

@@ -156,6 +156,29 @@ export class Kudu {
         }
     }
 
+    public async imageDeploy(headers:any) {
+        let httpRequest: WebRequest = {
+            method: 'POST',
+            uri: this._client.getRequestUri(`/api/app/update`),
+            headers: headers
+        };
+        try {
+            let response = await this._client.beginRequest(httpRequest, null);
+            core.debug(`Image Deploy response: ${JSON.stringify(response)}`);
+            if(response.statusCode == 200) {
+                core.debug('Deployment passed');
+                return null;
+            }
+            else {
+                throw response;
+            }
+        }
+        catch(error) {
+            throw Error("Failed to deploy image to Web App Container.\n" + this._getFormattedError(error));
+        }
+
+    }
+
     public async warDeploy(webPackage: string, queryParameters?: Array<string>): Promise<any> {
         let httpRequest: WebRequest = {
             method: 'POST',
