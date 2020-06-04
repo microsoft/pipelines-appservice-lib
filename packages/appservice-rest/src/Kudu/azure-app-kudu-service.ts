@@ -162,12 +162,12 @@ export class Kudu {
             uri: this._client.getRequestUri(`/api/app/update`),
             headers: headers
         };
+
         try {
             let response = await this._client.beginRequest(httpRequest, null);
             core.debug(`Image Deploy response: ${JSON.stringify(response)}`);
             if(response.statusCode == 200) {
                 core.debug('Deployment passed');
-                return null;
             }
             else {
                 throw response;

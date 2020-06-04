@@ -202,7 +202,7 @@ export class KuduServiceUtility {
             throw new Error("Windows Containerized web app or multi container support is not available for Publish profile auth scheme.");
         } 
         try {
-            console.log(`##[debug]Deploying image ${images} to the webapp ${appName}`);
+            console.log(`Deploying image ${images} to the webapp ${appName}`);
             let headers = {'LinuxFxVersion': images};
             await this._webAppKuduService.imageDeploy(headers);
         }
