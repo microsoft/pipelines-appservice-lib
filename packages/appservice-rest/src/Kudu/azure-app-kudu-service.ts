@@ -63,6 +63,26 @@ export class Kudu {
         }
     }
 
+    public async getAppRuntime() {
+        var httpRequest: WebRequest = {
+            method: 'GET',
+            uri: this._client.getRequestUri(`/diagnostics/runtime`)
+        };
+
+        try {
+            var response = await this._client.beginRequest(httpRequest);
+            core.debug(`getAppRuntime. Data: ${JSON.stringify(response)}`);
+            if(response.statusCode == 200) {
+                return response.body;
+            }
+
+            throw response;
+        }
+        catch(error) {
+            throw Error("Failed to fetch Kudu App Runtime diagnostics.\n" + this._getFormattedError(error));
+        }
+    }
+
     public async runCommand(physicalPath: string, command: string): Promise<void> {
         var httpRequest: WebRequest = {
             method: 'POST',
