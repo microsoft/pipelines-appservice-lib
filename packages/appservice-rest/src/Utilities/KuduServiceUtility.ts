@@ -200,7 +200,7 @@ export class KuduServiceUtility {
     public async deployWebAppImage(appName: string, images: string, isLinux: boolean) {
         try {
             if (!isLinux) {
-                throw new Error("Windows Containerized web app or multi container support is not available for Publish profile auth scheme.");
+                throw new Error("Windows Containerized web app is not available for Publish profile auth scheme.");
             }
             console.log(`Deploying image ${images} to the webapp ${appName}`);
             let headers = {'LinuxFxVersion': images};
