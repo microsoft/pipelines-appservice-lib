@@ -79,7 +79,8 @@ export class Kudu {
             throw response;
         }
         catch(error) {
-            throw Error("Failed to fetch Kudu App Runtime diagnostics.\n" + this._getFormattedError(error));
+            core.debug("Failed to fetch Kudu App Runtime diagnostics.\n" + this._getFormattedError(error) );
+            throw Error(error);
         }
     }
 
