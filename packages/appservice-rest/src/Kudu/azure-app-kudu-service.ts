@@ -178,6 +178,7 @@ export class Kudu {
     }
 
     public async imageDeploy(headers:any) {
+        const _Error: string = "Error";
         let httpRequest: WebRequest = {
             method: 'POST',
             uri: this._client.getRequestUri(`/api/app/update`),
@@ -187,7 +188,7 @@ export class Kudu {
         try {
             let response = await this._client.beginRequest(httpRequest, null);
             core.debug(`Image Deploy response: ${JSON.stringify(response)}`);
-            if(response.statusCode == 200) {
+            if(response.statusCode == 200 && !(_Error in response.body) ) {
                 core.debug('Deployment passed');
             }
             else {
