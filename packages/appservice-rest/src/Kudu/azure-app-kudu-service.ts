@@ -185,20 +185,18 @@ export class Kudu {
             headers: headers
         };
 
-        try {
-            let response = await this._client.beginRequest(httpRequest, null);
-            core.debug(`Image Deploy response: ${JSON.stringify(response)}`);
-            if(response.statusCode == 200 && !(_Error in response.body) ) {
-                core.debug('Deployment passed');
+        let response = await this._client.beginRequest(httpRequest, null);
+        core.debug(`Image Deploy response: ${JSON.stringify(response)}`);
+        if(response.statusCode == 200) {
+            if(_Error in response.body) {
+                throw response.body[_Error];
             }
-            else {
-                throw response;
-            }
+        }  
+        else {
+            throw response;
         }
-        catch(error) {
-            throw Error("Failed to deploy image to Web App Container.\n" + this._getFormattedError(error));
-        }
-
+        core.debug('Deployment passed');
+        
     }
 
     public async warDeploy(webPackage: string, queryParameters?: Array<string>): Promise<any> {
