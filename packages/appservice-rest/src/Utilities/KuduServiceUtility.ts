@@ -196,4 +196,21 @@ export class KuduServiceUtility {
             deployer : 'GitHub'
         };
     }
+
+    public async deployWebAppImage(appName: string, images: string, isLinux: boolean) {
+        try {
+            if (!isLinux) {
+                throw new Error("Windows Containerized web app is not available for Publish profile auth scheme.");
+            }
+            console.log(`Deploying image ${images} to App Service ${appName}`);
+            let headers = {'LinuxFxVersion': images};
+            await this._webAppKuduService.imageDeploy(headers);
+            console.log('Successfully deployed image to App Service.');
+        }
+        catch(error) {
+            core.error('Failed to deploy image to Web app Container.');
+            throw error;
+        }
+    }
+
 }

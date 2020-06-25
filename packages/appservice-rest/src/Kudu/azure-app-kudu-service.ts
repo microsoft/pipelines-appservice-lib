@@ -63,6 +63,27 @@ export class Kudu {
         }
     }
 
+    public async getAppRuntime() {
+        var httpRequest: WebRequest = {
+            method: 'GET',
+            uri: this._client.getRequestUri(`/diagnostics/runtime`)
+        };
+
+        try {
+            var response = await this._client.beginRequest(httpRequest);
+            core.debug(`getAppRuntime. Data: ${JSON.stringify(response)}`);
+            if(response.statusCode == 200) {
+                return response.body;
+            }
+
+            throw response;
+        }
+        catch(error) {
+            core.debug("Failed to fetch Kudu App Runtime diagnostics.\n" + this._getFormattedError(error) );
+            throw Error(error);
+        }
+    }
+
     public async runCommand(physicalPath: string, command: string): Promise<void> {
         var httpRequest: WebRequest = {
             method: 'POST',
@@ -154,6 +175,29 @@ export class Kudu {
         catch(error) {
             throw Error("Failed to deploy web package to App Service.\n" + this._getFormattedError(error));
         }
+    }
+
+    public async imageDeploy(headers:any) {
+        let httpRequest: WebRequest = {
+            method: 'POST',
+            uri: this._client.getRequestUri(`/api/app/update`),
+            headers: headers
+        };
+
+        try {
+            let response = await this._client.beginRequest(httpRequest, null);
+            core.debug(`Image Deploy response: ${JSON.stringify(response)}`);
+            if(response.statusCode == 200) {
+                core.debug('Deployment passed');
+            }
+            else {
+                throw response;
+            }
+        }
+        catch(error) {
+            throw Error("Failed to deploy image to Web App Container.\n" + this._getFormattedError(error));
+        }
+
     }
 
     public async warDeploy(webPackage: string, queryParameters?: Array<string>): Promise<any> {
