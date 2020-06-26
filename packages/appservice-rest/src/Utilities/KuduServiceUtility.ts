@@ -199,6 +199,7 @@ export class KuduServiceUtility {
 
     public async deployWebAppImage(appName: string, images: string, isLinux: boolean) {
         try {
+            core.debug(`DeployWebAppImage - appName: ${appName}; images: ${images}; isLinux:${isLinux}`);
             if (!isLinux) {
                 throw new Error("Windows Containerized web app is not available for Publish profile auth scheme.");
             }
