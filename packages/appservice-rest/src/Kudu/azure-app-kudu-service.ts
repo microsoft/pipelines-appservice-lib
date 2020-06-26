@@ -178,25 +178,24 @@ export class Kudu {
     }
 
     public async imageDeploy(headers:any) {
+        const _Error: string = "Error";
         let httpRequest: WebRequest = {
             method: 'POST',
             uri: this._client.getRequestUri(`/api/app/update`),
             headers: headers
         };
 
-        try {
-            let response = await this._client.beginRequest(httpRequest, null);
-            core.debug(`Image Deploy response: ${JSON.stringify(response)}`);
-            if(response.statusCode == 200) {
-                core.debug('Deployment passed');
+        let response = await this._client.beginRequest(httpRequest, null);
+        core.debug(`Image Deploy response: ${JSON.stringify(response)}`);
+        if(response.statusCode == 200) {
+            if(!!response.body && typeof response.body === 'object' && _Error in response.body) {
+                throw response.body[_Error];
             }
-            else {
-                throw response;
-            }
+        }  
+        else {
+            throw JSON.stringify(response);
         }
-        catch(error) {
-            throw Error("Failed to deploy image to Web App Container.\n" + this._getFormattedError(error));
-        }
+        core.debug('Deployment passed');
 
     }
 
