@@ -65,14 +65,14 @@ export class AzureAppService {
 
             console.log("Restarting app service: " + this._getFormattedName());
             var response = await this._client.beginRequest(webRequest);
-            console.log(`Restart response: ${JSON.stringify(response)}`);
+            console.debug(`Restart response: ${JSON.stringify(response)}`);
             if (response.statusCode == 200) {
                 console.log('Deployment passed');
             }
             else if (response.statusCode == 202) {
                 let pollableURL: string = response.headers.location;
                 if (!!pollableURL) {
-                    console.log(`Polling for restart api: ${pollableURL}`);
+                    console.debug(`Polling for restart api: ${pollableURL}`);
                     await this._getDeploymentDetailsFromPollURL(pollableURL);
                 }
                 else {
@@ -625,7 +625,7 @@ export class AzureAppService {
                 return;
             }
             else if (response.statusCode == 202) {
-                console.log(`POLL URL RESULT: ${JSON.stringify(response)}`);
+                console.debug(`POLL URL RESULT: ${JSON.stringify(response)}`);
                 await this._sleep(5);
                 continue;
             }
