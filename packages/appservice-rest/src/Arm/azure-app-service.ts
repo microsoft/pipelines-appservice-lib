@@ -63,11 +63,11 @@ export class AzureAppService {
                 }, null, '2016-08-01')
             };
 
-            core.log("Restarting app service: " + this._getFormattedName());
+            console.log("Restarting app service: " + this._getFormattedName());
             var response = await this._client.beginRequest(webRequest);
             core.debug(`Restart response: ${JSON.stringify(response)}`);
             if (response.statusCode == 200) {
-                core.log('Deployment passed');
+                console.log('Deployment passed');
             }
             else if (response.statusCode == 202) {
                 let pollableURL: string = response.headers.location;
@@ -76,14 +76,14 @@ export class AzureAppService {
                     await this._getDeploymentDetailsFromPollURL(pollableURL);
                 }
                 else {
-                    core.log('Restart api returned 202 without pollable URL.');
+                    console.log('Restart api returned 202 without pollable URL.');
                 }
             }
             else {
                 throw ToError(response);
             }
 
-            core.log("Restarted app service: " + this._getFormattedName());
+            console.log("Restarted app service: " + this._getFormattedName());
         }
         catch(error) {
             throw Error ("Failed to restart app service " + this._getFormattedName() + ".\n" + getFormattedError(error));
