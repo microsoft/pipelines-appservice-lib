@@ -63,27 +63,27 @@ export class AzureAppService {
                 }, null, '2016-08-01')
             };
 
-            console.log("Restarting app service: " + this._getFormattedName());
+            core.log("Restarting app service: " + this._getFormattedName());
             var response = await this._client.beginRequest(webRequest);
-            console.debug(`Restart response: ${JSON.stringify(response)}`);
+            core.debug(`Restart response: ${JSON.stringify(response)}`);
             if (response.statusCode == 200) {
-                console.log('Deployment passed');
+                core.log('Deployment passed');
             }
             else if (response.statusCode == 202) {
                 let pollableURL: string = response.headers.location;
                 if (!!pollableURL) {
-                    console.debug(`Polling for restart api: ${pollableURL}`);
+                    core.debug(`Polling for restart api: ${pollableURL}`);
                     await this._getDeploymentDetailsFromPollURL(pollableURL);
                 }
                 else {
-                    console.log('Restart api returned 202 without pollable URL.');
+                    core.log('Restart api returned 202 without pollable URL.');
                 }
             }
             else {
                 throw ToError(response);
             }
 
-            console.log("Restarted app service: " + this._getFormattedName());
+            core.log("Restarted app service: " + this._getFormattedName());
         }
         catch(error) {
             throw Error ("Failed to restart app service " + this._getFormattedName() + ".\n" + getFormattedError(error));
@@ -625,7 +625,7 @@ export class AzureAppService {
                 return;
             }
             else if (response.statusCode == 202) {
-                console.debug(`POLL URL RESULT: ${JSON.stringify(response)}`);
+                core.debug(`POLL URL RESULT: ${JSON.stringify(response)}`);
                 await this._sleep(5);
                 continue;
             }
