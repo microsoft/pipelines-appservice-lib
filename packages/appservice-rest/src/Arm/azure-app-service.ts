@@ -70,14 +70,7 @@ export class AzureAppService {
                 console.log('Deployment passed');
             }
             else if (response.statusCode == 202) {
-                let pollableURL: string = response.headers.location;
-                if (!!pollableURL) {
-                    core.debug(`Polling for restart api: ${pollableURL}`);
-                    await this._getDeploymentDetailsFromPollURL(pollableURL);
-                }
-                else {
-                    console.log('Restart api returned 202 without pollable URL.');
-                }
+                await this._client.getLongRunningOperationResult(response);
             }
             else {
                 throw ToError(response);
@@ -610,28 +603,5 @@ export class AzureAppService {
         return new Promise((resolve) => {
             setTimeout(resolve, sleepDurationInSeconds * 1000);
         });
-    }
-
-    private async _getDeploymentDetailsFromPollURL(pollURL: string):Promise<any> {
-        let httpRequest: WebRequest = {
-            method: 'GET',
-            uri: pollURL,
-            headers: {}
-        };
-
-        while(true) {
-            let response = await this._client.beginRequest(httpRequest);
-            if (response.statusCode == 200) {
-                return;
-            }
-            else if (response.statusCode == 202) {
-                core.debug(`POLL URL RESULT: ${JSON.stringify(response)}`);
-                await this._sleep(5);
-                continue;
-            }
-            else {
-                throw response;
-            }
-        }
     }
  }

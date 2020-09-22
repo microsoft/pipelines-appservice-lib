@@ -137,6 +137,47 @@ export class ServiceClient {
         return new ApiResult(null, result);
     }
 
+    public async getLongRunningOperationResult(response: WebResponse): Promise<WebResponse> {
+        let timeoutInMinutes = 2;
+        let timeout = new Date().getTime() + timeoutInMinutes * 60 * 1000;
+        
+        let request = {
+            method: 'GET',
+            uri: response.headers['azure-asyncoperation'] || response.headers['location']
+        } as WebRequest;
+
+        if (!request.uri) {
+            throw new Error('Unable to find the Azure-Async operation polling URI.');
+        }
+
+        while (true) {
+            response = await this.beginRequest(request);
+            core.debug(`POLL URL RESULT: ${JSON.stringify(response)}`);
+            if (response.statusCode === 202 || (response.body && (response.body.status == 'Accepted' || response.body.status == 'Running' || response.body.status == 'InProgress'))) {
+                if (timeout < new Date().getTime()) {
+                    throw new Error(`Async polling request timed out. URI: ${request.uri}`);
+                }
+
+                let retryAfterInterval = response.headers['retry-after'] && parseInt(response.headers['retry-after']) || 15;
+                await this._sleep(retryAfterInterval);
+            } 
+            else if (response.statusCode === 200) {
+                break;
+            }
+            else {
+                throw ToError(response);
+            }
+        }
+
+        return response;
+    }
+
+    private _sleep(sleepDurationInSeconds: number): Promise<any> {
+        return new Promise((resolve) => {
+            setTimeout(resolve, sleepDurationInSeconds * 1000);
+        });
+    }
+
     public subscriptionId: string;
     protected baseUrl: string;
     protected longRunningOperationRetryTimeout: number;
