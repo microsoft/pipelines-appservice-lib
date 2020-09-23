@@ -65,7 +65,14 @@ export class AzureAppService {
 
             console.log("Restarting app service: " + this._getFormattedName());
             var response = await this._client.beginRequest(webRequest);
-            if(response.statusCode != 200) {
+            core.debug(`Restart response: ${JSON.stringify(response)}`);
+            if (response.statusCode == 200) {
+                console.log('Deployment passed');
+            }
+            else if (response.statusCode == 202) {
+                await this._client.getLongRunningOperationResult(response);
+            }
+            else {
                 throw ToError(response);
             }
 
