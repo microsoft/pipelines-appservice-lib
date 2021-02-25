@@ -37,7 +37,7 @@ export class KuduServiceUtility {
         return deploymentID;
     }
 
-    public async deployUsingZipDeploy(packagePath: string): Promise<string> {
+    public async deployUsingZipDeploy(packagePath: string, customMessage?: any): Promise<string> {
         try {
             console.log('Package deployment using ZIP Deploy initiated.');
 
@@ -45,7 +45,8 @@ export class KuduServiceUtility {
                 'isAsync=true',
                 'deployer=' + GITHUB_ZIP_DEPLOY
             ];
-
+            var deploymentMessage = this._getUpdateHistoryRequest(null, null, customMessage).message;
+            queryParameters.push('message=' + encodeURIComponent(deploymentMessage));
             let deploymentDetails = await this._webAppKuduService.zipDeploy(packagePath, queryParameters);
             await this._processDeploymentResponse(deploymentDetails);
 
