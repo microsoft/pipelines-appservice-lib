@@ -1,6 +1,6 @@
 import Q = require('q');
 import fs = require('fs');
-import { WebClient, WebResponse, WebRequest, WebRequestOptions } from "../WebClient";
+import { sendRequest, WebResponse, WebRequest, WebRequestOptions } from "@azure-actions/utilities/lib/http";
 import querystring = require('querystring');
 
 import { IAuthorizer } from "./IAuthorizer";
@@ -8,7 +8,6 @@ import { IAuthorizer } from "./IAuthorizer";
 export class AzureEndpoint implements IAuthorizer {
     private static endpoint: AzureEndpoint;
     private _subscriptionID: string;
-    private _webClient: WebClient;
     private servicePrincipalClientID: string;
     private servicePrincipalKey: string;
     private tenantID: string;
@@ -30,7 +29,6 @@ export class AzureEndpoint implements IAuthorizer {
         this._baseUrl = "https://management.azure.com/";
         this.environmentAuthorityUrl = "https://login.windows.net/";
         this.activeDirectoryResourceId = "https://management.core.windows.net/";
-        this._webClient = new WebClient();
     }
 
     public static getEndpoint(authFilePath: string): AzureEndpoint {
@@ -104,7 +102,7 @@ export class AzureEndpoint implements IAuthorizer {
             retriableStatusCodes: [408, 409, 500, 502, 503, 504]
         };
 
-        this._webClient.sendRequest(webRequest, webRequestOptions).then(
+        sendRequest(webRequest, webRequestOptions).then(
             (response: WebResponse) => {
                 if (response.statusCode == 200) {
                     deferred.resolve(response.body.access_token);

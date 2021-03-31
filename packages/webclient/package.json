@@ -1,6 +1,6 @@
 {
   "name": "azure-actions-webclient",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Authorize to azure and make rest calls",
   "keywords": [
     "webclient",
@@ -28,6 +28,7 @@
     "@actions/core": "^1.1.3",
     "@actions/exec": "^1.0.1",
     "@actions/io": "^1.0.1",
+    "@azure-actions/utilities": "0.0.2",
     "fs": "0.0.1-security",
     "q": "^1.5.1",
     "querystring": "^0.2.0",
