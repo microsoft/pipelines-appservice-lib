@@ -201,11 +201,14 @@ export class KuduServiceUtility {
     public async deployWebAppImage(appName: string, images: string, isLinux: boolean) {
         try {
             core.debug(`DeployWebAppImage - appName: ${appName}; images: ${images}; isLinux:${isLinux}`);
-            if (!isLinux) {
-                throw new Error("Windows Containerized web app is not available for Publish profile auth scheme.");
-            }
             console.log(`Deploying image ${images} to App Service ${appName}`);
-            let headers = {'LinuxFxVersion': `DOCKER|${images}`};
+
+            if (!images) {
+                throw 'The container image to be deployed to App Service is empty.';
+            }
+
+            let fxVersionName = isLinux ? 'LinuxFxVersion' : 'WindowsFxVersion';
+            let headers = {fxVersionName: `DOCKER|${images}`};
             await this._webAppKuduService.imageDeploy(headers);
             console.log('Successfully deployed image to App Service.');
         }
