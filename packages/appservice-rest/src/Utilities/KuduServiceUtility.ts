@@ -207,8 +207,7 @@ export class KuduServiceUtility {
                 throw 'The container image to be deployed to App Service is empty.';
             }
 
-            let fxVersionName = isLinux ? 'LinuxFxVersion' : 'WindowsFxVersion';
-            let headers = {fxVersionName: `DOCKER|${images}`};
+            let headers = isLinux ? { 'LinuxFxVersion': `DOCKER|${images}` } : { 'WindowsFxVersion': `DOCKER|${images}` };
             await this._webAppKuduService.imageDeploy(headers);
             console.log('Successfully deployed image to App Service.');
         }
