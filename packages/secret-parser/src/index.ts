@@ -23,7 +23,7 @@ export class SecretParser {
                     this.dom = JSON.parse(content);
                 } 
                 catch (ex) {
-                    throw new Error('Content is not a valid JSON object');
+                    throw new Error(`Content is not a valid JSON object. ${ex}`);
                 }
                 break;
             case FormatType.XML:
@@ -31,7 +31,7 @@ export class SecretParser {
                     this.dom = new domParser().parseFromString(content);
                 }
                 catch (ex) {
-                    throw new Error('Content is not a valid XML object');
+                    throw new Error(`Content is not a valid XML object. ${ex}');
                 }
                 break;
             default: 
