@@ -362,4 +362,40 @@ export class Kudu {
             }
         }
     }
+
+    public async validateZipDeploy(webPackage: string, queryParameters?: Array<string>): Promise<any> {
+        let httpRequest: webClient.WebRequest = {
+            method: 'POST',
+            uri: this._client.getRequestUri(`/api/zipdeploy/validate`, queryParameters),
+            body: fs.createReadStream(webPackage)
+        };
+        
+        try {
+            let response = await this._client.beginRequest(httpRequest, null, 'application/octet-stream');
+            if(response.statusCode == 200) {
+                console.log(`##[debug]Validation passed response: ${JSON.stringify(response)}`);
+                if (response.body && response.body.result){
+                    console.log(`##[warning] ${JSON.stringify(response.body.result)}`);          
+                }
+                return null;
+            }
+            else if(response.statusCode == 400) {         
+                console.log(`##[debug]Validation failed response: ${JSON.stringify(response)}`);      
+                throw response;
+            }
+            else {
+                console.log(`##[debug]Skipping validation with status: ${response.statusCode}`);
+                return null;
+            }
+        }
+        catch(error) {
+            if (error && error.body && error.body.result && typeof error.body.result.valueOf() == 'string' && error.body.result.includes('ZipDeploy Validation ERROR')) {
+                throw new Error(JSON.stringify(error.body.result));
+            }           
+            else {
+                console.log(`##[debug]Skipping validation with error: ${JSON.stringify(error)}`);
+                return null;
+            }
+        }
+    }
 }

@@ -194,4 +194,18 @@ export class KuduServiceUtility {
             deployer : 'GitHub'
         };
     }
+
+    public async validateBeforeZipDeploy(packagePath: string, zipLanguage: string, zipIs64Bit: string): Promise<any> {
+        try {
+            console.log('Validating deployment package for functions app before Zip Deploy.');
+            let queryParameters: Array<string> = [
+                'zipLanguage=' + zipLanguage,
+                'zipIs64Bit=' + zipIs64Bit
+            ];
+            await this._webAppKuduService.validateZipDeploy(packagePath, queryParameters); 
+        }
+        catch(error) {
+            throw error;
+        }
+    }
 }
