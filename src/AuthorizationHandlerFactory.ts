@@ -17,6 +17,6 @@ export function getHandler(): IAuthorizationHandler {
         return AzureEndpoint.getEndpoint(authFilePath);
     }
     else {
-        throw new Error("No crdentails found. Please provide Publish Profile path or add a azure login script before this action or put credentiasl file in /home/auth.json.");
+        throw new Error("No credentials found. Please provide Publish Profile path or add a azure login script before this action or put credentials file in /home/auth.json.");
     }
 }
