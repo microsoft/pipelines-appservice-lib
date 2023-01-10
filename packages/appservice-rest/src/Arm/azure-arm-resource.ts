@@ -12,8 +12,10 @@ export class Resources {
     }
 
     public async getResources(resourceType: string, resourceName: string, resourceGroupName?:string) {
-        var queryParameters = (resourceGroupName != undefined && resourceGroupName) ? `$filter=resourceType EQ \'${encodeURIComponent(resourceType)}\' AND resourceGroup EQ \'${encodeURIComponent(resourceGroupName)}\' AND name EQ \'${encodeURIComponent(resourceName)}\'` 
-        :`$filter=resourceType EQ \'${encodeURIComponent(resourceType)}\' AND name EQ \'${encodeURIComponent(resourceName)}\'`;
+        var queryParameters = `$filter=resourceType EQ \'${encodeURIComponent(resourceType)}\' AND name EQ \'${encodeURIComponent(resourceName)}\'`;
+        if(!!resourceGroupName){
+            queryParameters = queryParameters + `AND resourceGroup EQ \'${encodeURIComponent(resourceGroupName)}\'`;
+        }
         
         var httpRequest: WebRequest = {
             method: 'GET',
