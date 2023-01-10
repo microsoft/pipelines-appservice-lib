@@ -11,11 +11,14 @@ export class Resources {
         this._client = new ServiceClient(endpoint, 30);
     }
 
-    public async getResources(resourceType: string, resourceName: string) {
+    public async getResources(resourceType: string, resourceName: string, resourceGroupName?:string) {
+        var queryParameters = (resourceGroupName != undefined && resourceGroupName) ? `$filter=resourceType EQ \'${encodeURIComponent(resourceType)}\' AND resourceGroup EQ \'${encodeURIComponent(resourceGroupName)}\' AND name EQ \'${encodeURIComponent(resourceName)}\'` 
+        :`$filter=resourceType EQ \'${encodeURIComponent(resourceType)}\' AND name EQ \'${encodeURIComponent(resourceName)}\'`;
+        
         var httpRequest: WebRequest = {
             method: 'GET',
             uri: this._client.getRequestUri('//subscriptions/{subscriptionId}/resources', {},
-            [`$filter=resourceType EQ \'${encodeURIComponent(resourceType)}\' AND name EQ \'${encodeURIComponent(resourceName)}\'`], '2016-07-01')
+            [queryParameters], '2016-07-01')
         };
 
         var result: any[] = [];
