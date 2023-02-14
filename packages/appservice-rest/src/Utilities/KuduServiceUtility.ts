@@ -172,7 +172,8 @@ export class KuduServiceUtility {
         var message = {
             type : "deployment",
             sha : `${process.env.GITHUB_SHA}`,
-            repoName : `${process.env.GITHUB_REPOSITORY}`
+            repoName : `${process.env.GITHUB_REPOSITORY}`,
+            actor: `${process.env.GITHUB_ACTOR}`
         };
 
         if(!!customMessage) {
