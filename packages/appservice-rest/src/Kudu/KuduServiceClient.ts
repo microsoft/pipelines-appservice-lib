@@ -20,7 +20,7 @@ export class KuduServiceClient {
         request.headers = request.headers || {};
         request.headers["Authorization"] = "Basic " + this._accesssToken;
         request.headers['Content-Type'] = contentType || 'application/json; charset=utf-8';
-        
+
         if(!!this._cookie) {
             core.debug(`setting affinity cookie ${JSON.stringify(this._cookie)}`);
             request.headers['Cookie'] = this._cookie;
@@ -35,7 +35,7 @@ export class KuduServiceClient {
                     this._cookie = httpResponse.headers['set-cookie'];
                     core.debug(`loaded affinity cookie ${JSON.stringify(this._cookie)}`);
                 }
-                
+
                 return httpResponse;
             }
             catch(exception) {
@@ -52,7 +52,7 @@ export class KuduServiceClient {
                     continue;
                 }
 
-                throw new Error(exceptionString);
+                throw exception;
             }
         }
 
