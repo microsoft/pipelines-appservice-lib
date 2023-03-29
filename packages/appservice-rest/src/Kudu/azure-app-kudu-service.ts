@@ -173,7 +173,9 @@ export class Kudu {
             }
         }
         catch(error) {
-            throw Error("Failed to deploy web package to App Service.\n" + this._getFormattedError(error));
+            const deploymentError = new Error("Failed to deploy web package to App Service.\n" + this._getFormattedError(error));
+            (deploymentError as any).statusCode = error.statusCode;
+            throw deploymentError;
         }
     }
 
@@ -191,7 +193,7 @@ export class Kudu {
             if(!!response.body && typeof response.body === 'object' && _Error in response.body) {
                 throw response.body[_Error];
             }
-        }  
+        }
         else {
             throw JSON.stringify(response);
         }
@@ -270,7 +272,7 @@ export class Kudu {
         catch(error) {
             throw Error("Failed to gte deployment logs.\n" + this._getFormattedError(error));
         }
-    }    
+    }
 
     public async getFileContent(physicalPath: string, fileName: string): Promise<string> {
         physicalPath = physicalPath.replace(/[\\]/g, "/");
@@ -323,7 +325,7 @@ export class Kudu {
             if([200, 201, 204].indexOf(response.statusCode) != -1) {
                 return response.body;
             }
-            
+
             throw response;
         }
         catch(error) {
