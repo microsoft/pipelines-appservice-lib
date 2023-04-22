@@ -86,7 +86,7 @@ export class AzureAppServiceUtility {
                 const app = await this._appService.get()
                 const scmUri = (app.properties["hostNameSslStates"] || []).find(n => n.hostType == "Repository");
                 if (!!scmUri) {
-                    return new Kudu(scmUri["name"], token)
+                    return new Kudu(`https://${scmUri["name"]}`, token)
                 }
             }
         } catch (e) {
