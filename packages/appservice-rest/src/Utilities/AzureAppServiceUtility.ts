@@ -79,15 +79,29 @@ export class AzureAppServiceUtility {
     }
 
     public async getKuduService(): Promise<Kudu> {
+        try {
+            const token = await this._appService.getAccessToken()
+            if (!!token) {
+                console.log(`::add-mask::${token}`);
+                const app = await this._appService.get()
+                const scmUri = (app.properties["hostNameSslStates"] || []).find(n => n.hostType == "Repository");
+                if (!!scmUri) {
+                    return new Kudu(scmUri["name"], token)
+                }
+            }
+        } catch (e) {
+            console.log('Error getting accessToken. Falling back to publishing profile: ' + e);
+        }
+
         var publishingCredentials = await this._appService.getPublishingCredentials();
         if(publishingCredentials.properties["scmUri"]) {
-            let userName = publishingCredentials.properties["publishingUserName"];
+            let username = publishingCredentials.properties["publishingUserName"];
             let password = publishingCredentials.properties["publishingPassword"];
 
             // masking kudu password
             console.log(`::add-mask::${password}`);
             
-            return new Kudu(publishingCredentials.properties["scmUri"], userName, password);
+            return new Kudu(publishingCredentials.properties["scmUri"], { username, password });
         }
 
         throw Error('KUDU SCM details are empty');
