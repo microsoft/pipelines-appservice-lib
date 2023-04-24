@@ -114,6 +114,10 @@ export class AzureAppService {
         }
     }
 
+    public getAccessToken(): Promise<string> {
+        return this._client.getAccessToken();
+    }
+
     public async getApplicationSettings(force?: boolean): Promise<AzureAppServiceConfigurationDetails> {
         if(force || !this._appServiceApplicationSetings) {
             this._appServiceApplicationSetings = await this._getApplicationSettings();

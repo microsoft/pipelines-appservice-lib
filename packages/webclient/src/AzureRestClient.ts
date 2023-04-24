@@ -172,6 +172,10 @@ export class ServiceClient {
         return response;
     }
 
+    public getAccessToken(): Promise<string> {
+        return this._authorizer.getToken()
+    }
+
     private _sleep(sleepDurationInSeconds: number): Promise<any> {
         return new Promise((resolve) => {
             setTimeout(resolve, sleepDurationInSeconds * 1000);

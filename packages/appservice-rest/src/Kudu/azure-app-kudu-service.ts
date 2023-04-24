@@ -15,9 +15,13 @@ export const KUDU_DEPLOYMENT_CONSTANTS = {
 export class Kudu {
     private _client: KuduServiceClient;
 
-    constructor(scmUri: string, username: string, password: string) {
-        var base64EncodedCredential = (new Buffer(username + ':' + password).toString('base64'));
-        this._client = new KuduServiceClient(scmUri, base64EncodedCredential);
+    constructor(scmUri: string, credentials: {username: string, password: string} | string) {
+        const accessToken = typeof credentials === 'string'
+            ? credentials
+            : (new Buffer(credentials.username + ':' + credentials.password).toString('base64'));
+        const accessTokenType = typeof credentials === 'string' ? "Bearer" : "Basic"
+
+        this._client = new KuduServiceClient(scmUri, accessToken, accessTokenType);
     }
 
     public async updateDeployment(requestBody: any): Promise<string> {

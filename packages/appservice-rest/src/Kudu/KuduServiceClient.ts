@@ -6,19 +6,21 @@ import core = require('@actions/core');
 
 export class KuduServiceClient {
     private _scmUri;
-    private _accesssToken: string;
+    private _accessToken: string;
+    private _accessTokenType: "Basic" | "Bearer";
     private _cookie: string[];
     private _webClient: WebClient;
 
-    constructor(scmUri: string, accessToken: string) {
-        this._accesssToken = accessToken;
+    constructor(scmUri: string, accessToken: string, accessTokenType: "Basic" | "Bearer") {
+        this._accessToken = accessToken;
+        this._accessTokenType = accessTokenType;
         this._scmUri = scmUri;
         this._webClient = new WebClient();
     }
 
     public async beginRequest(request: WebRequest, reqOptions?: WebRequestOptions, contentType?: string): Promise<WebResponse> {
         request.headers = request.headers || {};
-        request.headers["Authorization"] = "Basic " + this._accesssToken;
+        request.headers["Authorization"] = `${this._accessTokenType} ${this._accessToken}`
         request.headers['Content-Type'] = contentType || 'application/json; charset=utf-8';
 
         if(!!this._cookie) {
