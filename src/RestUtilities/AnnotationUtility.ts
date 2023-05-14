@@ -37,7 +37,7 @@ function getReleaseAnnotation(isDeploymentSuccess: boolean): {[key: string]: any
     };
 
     let releaseAnnotation = {
-        "AnnotationName": "GitHUb Annotation",
+        "AnnotationName": "GitHub Annotation",
         "Category": "Text",
         "EventTime": new Date(),
         "Id": uuidV4(),
