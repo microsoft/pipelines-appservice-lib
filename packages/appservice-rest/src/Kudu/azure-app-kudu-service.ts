@@ -55,7 +55,11 @@ export class Kudu {
 
         try {
             var response = await this._client.beginRequest(httpRequest);
-            core.debug(`getAppSettings. Data: ${JSON.stringify(response)}`);
+            var responseBody = JSON.stringify(response.body);
+            var appSettingsMap = JSON.parse(responseBody);
+
+            core.debug(`App settings: ${Object.keys(appSettingsMap)}`);
+
             if(response.statusCode == 200) {
                 return response.body;
             }
