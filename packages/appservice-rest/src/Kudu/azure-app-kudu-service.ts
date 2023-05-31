@@ -58,11 +58,8 @@ export class Kudu {
             var responseBody = JSON.stringify(response.body);
             var appSettingsMap = JSON.parse(responseBody);
 
-            for(var settingName in appSettingsMap) {
-                // Printing only app-settings names instead of its values
-                core.debug(`Name: ${settingName}`);
+            core.debug(`App settings: ${Object.keys(appSettingsMap)}`);
 
-            }
             if(response.statusCode == 200) {
                 return response.body;
             }
