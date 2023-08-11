@@ -214,7 +214,7 @@ export class Kudu {
         }
         catch(error) {
             if(error && error.message && typeof error.message.valueOf() == 'string') {
-                error.message = "Failed to gte deployment logs.\n" + error.message;
+                error.message = "Failed to get deployment logs.\n" + error.message;
             }
             throw error;
         }
@@ -236,7 +236,7 @@ export class Kudu {
         }
         catch(error) {
             if(error && error.message && typeof error.message.valueOf() == 'string') {
-                error.message = "Failed to gte deployment logs.\n" + error.message;
+                error.message = "Failed to get deployment logs.\n" + error.message;
             }
             throw error;
         }
