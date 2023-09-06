@@ -117,11 +117,6 @@ export class KuduServiceUtility {
                 queryParameters.push('type=' + encodeURIComponent(type));
             }
 
-            else {
-                console.warn('No deployment type provided. Defaulting to type=zip');
-                queryParameters.push('type=zip');
-            }
-
             if (targetPath) {
                 queryParameters.push('path=' + encodeURIComponent(targetPath));
             }
