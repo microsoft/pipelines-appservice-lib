@@ -55,7 +55,11 @@ export class Kudu {
 
         try {
             var response = await this._client.beginRequest(httpRequest);
-            core.debug(`getAppSettings. Data: ${JSON.stringify(response)}`);
+            var responseBody = JSON.stringify(response.body);
+            var appSettingsMap = JSON.parse(responseBody);
+
+            core.debug(`App settings: ${Object.keys(appSettingsMap)}`);
+
             if(response.statusCode == 200) {
                 return response.body;
             }
@@ -236,6 +240,40 @@ export class Kudu {
         }
         catch(error) {
             throw Error("Failed to deploy web package to App Service.\n" + this._getFormattedError(error));
+        }
+    }
+
+    public async oneDeploy(webPackage: string, queryParameters?: Array<string>): Promise<any> {
+        let httpRequest: WebRequest = {
+            method: 'POST',
+            uri: this._client.getRequestUri(`/api/publish`, queryParameters),
+            body: fs.createReadStream(webPackage)
+        };
+
+        try {
+            let response = await this._client.beginRequest(httpRequest, null, 'application/octet-stream');
+            core.debug(`One Deploy response: ${JSON.stringify(response)}`);
+            if (response.statusCode == 200) {
+                core.debug('Deployment passed');
+                return null;
+            }
+            else if (response.statusCode == 202) {
+                let pollableURL: string = response.headers.location;
+                if (!!pollableURL) {
+                    core.debug(`Polling for One Deploy URL: ${pollableURL}`);
+                    return await this._getDeploymentDetailsFromPollURL(pollableURL);
+                }
+                else {
+                    core.debug('One Deploy returned 202 without pollable URL.');
+                    return null;
+                }
+            }
+            else {
+                throw response;
+            }
+        }
+        catch (error) {
+            throw Error("Failed to deploy web package using OneDeploy to App Service.\n" + this._getFormattedError(error));
         }
     }
 
