@@ -29,7 +29,6 @@ export class AzureAppService {
     private _slotUrl: string;
     public _client: ServiceClient;
     private _appServiceConfigurationDetails: AzureAppServiceConfigurationDetails;
-    private _appServicePublishingProfile: any;
     private _appServiceApplicationSetings: AzureAppServiceConfigurationDetails;
     private _appServiceConfigurationSettings: AzureAppServiceConfigurationDetails;
     private _appServiceConnectionString: AzureAppServiceConfigurationDetails;
@@ -81,14 +80,6 @@ export class AzureAppService {
         catch(error) {
             throw Error ("Failed to restart app service " + this._getFormattedName() + ".\n" + getFormattedError(error));
         }
-    }
-
-    public async getPublishingProfileWithSecrets(force?: boolean): Promise<any>{
-        if(force || !this._appServicePublishingProfile) {
-            this._appServicePublishingProfile = await this._getPublishingProfileWithSecrets();
-        }
-
-        return this._appServicePublishingProfile;
     }
 
     public async getPublishingCredentials(): Promise<any> {
@@ -475,30 +466,6 @@ export class AzureAppService {
 
     public getSlot(): string {
         return this._slot ? this._slot : "production";
-    }
-
-    private async _getPublishingProfileWithSecrets(): Promise<any> {
-        try {
-            var httpRequest: WebRequest = {
-                method: 'POST',
-                uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${this._slotUrl}/publishxml`,
-                {
-                    '{resourceGroupName}': this._resourceGroup,
-                    '{name}': this._name,
-                }, null, '2016-08-01')
-            }
-
-            var response = await this._client.beginRequest(httpRequest);
-            if(response.statusCode != 200) {
-                throw ToError(response);
-            }
-
-            var publishingProfile = response.body;
-            return publishingProfile;
-        }
-        catch(error) {
-            throw Error("Failed to fetch publishing profile for app service " + this._getFormattedName() + ".\n" + getFormattedError(error));
-        }
     }
 
     private async _getApplicationSettings(): Promise<AzureAppServiceConfigurationDetails> {
