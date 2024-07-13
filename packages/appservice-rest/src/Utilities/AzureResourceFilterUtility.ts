@@ -5,7 +5,7 @@ export class AzureResourceFilterUtility {
     public static async getAppDetails(endpoint: IAuthorizer, resourceName: string, resourceGroupName?: string, slotName?: string): Promise<any> {
         var azureResources: Resources = new Resources(endpoint);
         var resourceType: string = 'Microsoft.Web/Sites'
-        if (!!slotName){
+        if (!!slotName && slotName.toLowerCase() !== 'production') {
             resourceType = 'Microsoft.Web/Sites/Slots'
             resourceName = resourceName.concat("/", slotName)
         }
