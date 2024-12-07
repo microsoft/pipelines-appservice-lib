@@ -29,7 +29,7 @@
   "dependencies": {
     "@actions/core": "^1.1.10",
     "jsonpath": "^1.0.2",
-    "xmldom": "^0.1.27",
+    "xmldom": "^0.6.0",
     "xpath": "0.0.27"
   }
 }
