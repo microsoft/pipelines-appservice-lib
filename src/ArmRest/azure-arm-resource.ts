@@ -14,7 +14,7 @@ export class Resources {
         var httpRequest: webClient.WebRequest = {
             method: 'GET',
             uri: this._client.getRequestUri('//subscriptions/{subscriptionId}/resources', {},
-            [`$filter=resourceType EQ \'${encodeURIComponent(resourceType)}\' AND name EQ \'${encodeURIComponent(resourceName)}\'`], '2016-07-01')
+            [`$filter=resourceType EQ \'${encodeURIComponent(resourceType)}\' AND name EQ \'${encodeURIComponent(resourceName)}\'`], '2024-04-01')
         };
 
         var result: any[] = [];
