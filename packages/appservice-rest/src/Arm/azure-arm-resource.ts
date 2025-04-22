@@ -20,7 +20,7 @@ export class Resources {
         var httpRequest: WebRequest = {
             method: 'GET',
             uri: this._client.getRequestUri('//subscriptions/{subscriptionId}/resources', {},
-            [queryParameters], '2024-04-01')
+            [queryParameters], '2024-11-01')
         };
 
         var result: any[] = [];
