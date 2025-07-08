@@ -8,6 +8,7 @@ import { WebRequest } from 'azure-actions-webclient/WebClient';
 import { getFormattedError } from './ErrorHandlerUtility';
 
 import core = require('@actions/core');
+import { SiteContainer } from './SiteContainer';
 
 
 interface AzureAppServiceConfigurationDetails {
@@ -20,16 +21,16 @@ interface AzureAppServiceConfigurationDetails {
     properties?: {[key: string]: any};
 }
 
-interface SiteContainer {
-    name: string;
-    targetPort: string;
-    isMain: boolean;
-    image: string;
-    authType?: string;
-    userName?: string;
-    passwordSecret?: string;
-    userManagedIdentityClientId?: string;
-}
+// export class SiteContainer {
+//     name: string;
+//     targetPort: string;
+//     isMain: boolean;
+//     image: string;
+//     authType?: string;
+//     userName?: string;
+//     passwordSecret?: string;
+//     userManagedIdentityClientId?: string;
+// }
 
 export const WebsiteEnableSyncUpdateSiteKey: string = "WEBSITE_ENABLE_SYNC_UPDATE_SITE"; 
 
@@ -620,20 +621,20 @@ export class AzureAppService {
         });
     }
 
-    public async updateSiteContainer(siteContainer: SiteContainer, siteContainerName: string): Promise<any> {
+    public async updateSiteContainer(siteContainer: SiteContainer): Promise<any> {
         try {
             var slotUrl: string = !!this._slot ? `/slots/${this._slot}` : '';
             var httpRequest: WebRequest = {
                 method: 'PUT',
                 body: JSON.stringify({
                     properties: {
-                        image: siteContainer.image,
-                        targetPort: siteContainer.targetPort,
-                        isMain: siteContainer.isMain // use the property directly from the interface
+                        image: siteContainer.getImage(),
+                        targetPort: siteContainer.getTargetPort(),
+                        isMain: siteContainer.getIsMain()
                     }
                 }),
                 uri: this._client.getRequestUri(
-                    `//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${slotUrl}/sitecontainers/${siteContainerName}?api-version=2014-11-01`,
+                    `//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${slotUrl}/sitecontainers/${siteContainer.getName()}?api-version=2014-11-01`,
                     {
                         '{resourceGroupName}': this._resourceGroup,
                         '{name}': this._name,
@@ -649,7 +650,7 @@ export class AzureAppService {
             return response.body;
         }
         catch(error) {
-            throw Error("Failed to update SiteContainer " + siteContainerName + getFormattedError(error));
+            throw Error("Failed to update SiteContainer " + getFormattedError(error));
         }
     }
  }

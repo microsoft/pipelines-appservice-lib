@@ -5,6 +5,8 @@ import { Kudu } from '../Kudu/azure-app-kudu-service';
 
 import Q = require('q');
 import core = require('@actions/core');
+import { getFormattedError } from '../Arm/ErrorHandlerUtility';
+import { SiteContainer } from '../Arm/SiteContainer';
 
 var parseString = require('xml2js').parseString;
 
@@ -164,5 +166,17 @@ export class AzureAppServiceUtility {
         }
         
         return isNewValueUpdated;
+    }
+
+    public async updateSiteContainer(siteContainers: Array<SiteContainer>): Promise<any> {
+        try {
+            for (let i = 0; i < siteContainers.length; i++) {
+                core.debug(`Updating SiteContainer ${siteContainers[i].getName()} with data: ${JSON.stringify(siteContainers[i])}`);
+                await this._appService.updateSiteContainer(siteContainers[i]);
+            }
+        }
+        catch(error) {
+            throw Error("Failed to update SiteContainers "  + getFormattedError(error));
+        }
     }
 }
