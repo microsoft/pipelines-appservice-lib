@@ -20,6 +20,17 @@ interface AzureAppServiceConfigurationDetails {
     properties?: {[key: string]: any};
 }
 
+interface SiteContainer {
+    name: string;
+    targetPort: string;
+    isMain: boolean;
+    image: string;
+    authType?: string;
+    userName?: string;
+    passwordSecret?: string;
+    userManagedIdentityClientId?: string;
+}
+
 export const WebsiteEnableSyncUpdateSiteKey: string = "WEBSITE_ENABLE_SYNC_UPDATE_SITE"; 
 
 export class AzureAppService {
@@ -607,5 +618,38 @@ export class AzureAppService {
         return new Promise((resolve) => {
             setTimeout(resolve, sleepDurationInSeconds * 1000);
         });
+    }
+
+    public async updateSiteContainer(siteContainer: SiteContainer, siteContainerName: string): Promise<any> {
+        try {
+            var slotUrl: string = !!this._slot ? `/slots/${this._slot}` : '';
+            var httpRequest: WebRequest = {
+                method: 'PUT',
+                body: JSON.stringify({
+                    properties: {
+                        image: siteContainer.image,
+                        targetPort: siteContainer.targetPort,
+                        isMain: siteContainer.isMain // use the property directly from the interface
+                    }
+                }),
+                uri: this._client.getRequestUri(
+                    `//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${slotUrl}/sitecontainers/${siteContainerName}?api-version=2014-11-01`,
+                    {
+                        '{resourceGroupName}': this._resourceGroup,
+                        '{name}': this._name,
+                    }, null, '2014-11-01'
+                )
+            }
+            
+            var response = await this._client.beginRequest(httpRequest);
+            if(response.statusCode != 200 && response.statusCode != 202) {
+                throw ToError(response);
+            }
+
+            return response.body;
+        }
+        catch(error) {
+            throw Error("Failed to update SiteContainer " + siteContainerName + getFormattedError(error));
+        }
     }
  }
