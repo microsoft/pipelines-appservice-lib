@@ -16,12 +16,12 @@ export class SiteContainerDeploymentUtility {
         this._appServiceUtility = new AzureAppServiceUtility(appService);
     }
 
-    public async updateSiteContainers(siteContainers: Array<SiteContainer>): Promise<any> {
+    public async updateSiteContainer(siteContainer: SiteContainer): Promise<any> {
         try {
-            return await this._appServiceUtility.updateSiteContainer(siteContainers);
+            return await this._appServiceUtility.updateSiteContainer(siteContainer);
         }
         catch(error) {
-            throw Error("Failed to update SiteContainers "  + getFormattedError(error));
+            throw Error("Failed to update SiteContainer "  + getFormattedError(error));
         }
     }
 }

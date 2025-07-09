@@ -168,15 +168,13 @@ export class AzureAppServiceUtility {
         return isNewValueUpdated;
     }
 
-    public async updateSiteContainer(siteContainers: Array<SiteContainer>): Promise<any> {
+    public async updateSiteContainer(siteContainer: SiteContainer): Promise<any> {
         try {
-            for (let i = 0; i < siteContainers.length; i++) {
-                core.debug(`Updating SiteContainer ${siteContainers[i].getName()} with data: ${JSON.stringify(siteContainers[i])}`);
-                await this._appService.updateSiteContainer(siteContainers[i]);
-            }
+            core.debug(`Updating SiteContainer ${siteContainer.getName()} with data: ${JSON.stringify(siteContainer)}`);
+            await this._appService.updateSiteContainer(siteContainer);
         }
         catch(error) {
-            throw Error("Failed to update SiteContainers "  + getFormattedError(error));
+            throw Error("Failed to update SiteContainer "  + getFormattedError(error));
         }
     }
 }

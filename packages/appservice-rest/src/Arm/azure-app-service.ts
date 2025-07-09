@@ -630,7 +630,11 @@ export class AzureAppService {
                     properties: {
                         image: siteContainer.getImage(),
                         targetPort: siteContainer.getTargetPort(),
-                        isMain: siteContainer.getIsMain()
+                        isMain: siteContainer.getIsMain(),
+                        authType: siteContainer.getAuthType(),
+                        userName: siteContainer.getUserName(),
+                        passwordSecret: siteContainer.getPasswordSecret(),
+                        userManagedIdentityClientId: siteContainer.getUserManagedIdentityClientId()
                     }
                 }),
                 uri: this._client.getRequestUri(
