@@ -21,17 +21,6 @@ interface AzureAppServiceConfigurationDetails {
     properties?: {[key: string]: any};
 }
 
-// export class SiteContainer {
-//     name: string;
-//     targetPort: string;
-//     isMain: boolean;
-//     image: string;
-//     authType?: string;
-//     userName?: string;
-//     passwordSecret?: string;
-//     userManagedIdentityClientId?: string;
-// }
-
 export const WebsiteEnableSyncUpdateSiteKey: string = "WEBSITE_ENABLE_SYNC_UPDATE_SITE"; 
 
 export class AzureAppService {
@@ -638,11 +627,11 @@ export class AzureAppService {
                     }
                 }),
                 uri: this._client.getRequestUri(
-                    `//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${slotUrl}/sitecontainers/${siteContainer.getName()}?api-version=2014-11-01`,
+                    `//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${slotUrl}/sitecontainers/${siteContainer.getName()}`,
                     {
                         '{resourceGroupName}': this._resourceGroup,
                         '{name}': this._name,
-                    }, null, '2014-11-01'
+                    }, null, '2024-11-01'
                 )
             }
             
