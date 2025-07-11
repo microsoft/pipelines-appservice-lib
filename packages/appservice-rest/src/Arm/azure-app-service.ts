@@ -608,4 +608,31 @@ export class AzureAppService {
             setTimeout(resolve, sleepDurationInSeconds * 1000);
         });
     }
+
+    public async updateSiteContainer(properties: any, siteContainerName: string): Promise<any> {
+        try {
+            var slotUrl: string = !!this._slot ? `/slots/${this._slot}` : '';
+            var httpRequest: WebRequest = {
+                method: 'PUT',
+                body: JSON.stringify(properties),
+                uri: this._client.getRequestUri(
+                    `//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${slotUrl}/sitecontainers/${siteContainerName}`,
+                    {
+                        '{resourceGroupName}': this._resourceGroup,
+                        '{name}': this._name,
+                    }, null, '2024-11-01'
+                )
+            }
+            
+            var response = await this._client.beginRequest(httpRequest);
+            if(response.statusCode != 200 && response.statusCode != 202) {
+                throw ToError(response);
+            }
+
+            return response.body;
+        }
+        catch(error) {
+            throw Error("Failed to update SiteContainer " + getFormattedError(error));
+        }
+    }
  }

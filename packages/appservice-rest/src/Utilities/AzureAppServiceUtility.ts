@@ -5,6 +5,7 @@ import { Kudu } from '../Kudu/azure-app-kudu-service';
 
 import Q = require('q');
 import core = require('@actions/core');
+import { getFormattedError } from '../Arm/ErrorHandlerUtility';
 
 var parseString = require('xml2js').parseString;
 
