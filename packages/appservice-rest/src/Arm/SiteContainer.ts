@@ -1,13 +1,110 @@
+export enum AUTH_TYPE {
+    ANONYMOUS = "Anonymous",
+    USERCREDENTIALS = "UserCredentials",
+    SYSTEM_ASSIGNED = "SystemAssigned",
+    USER_ASSIGNED = "UserAssigned"
+}
+
+export class EnvironmentVariable {
+    constructor(
+        private name: string,
+        private value: string,
+    ) {}
+    
+    getName(): string {
+        return this.name;
+    }
+    
+    getValue(): string {
+        return this.value;
+    }
+
+    setName(name: string): void {
+        this.name = name;
+    }
+    
+    setValue(value: string): void {
+        this.value = value;
+    }
+
+    static fromJson(item: any): EnvironmentVariable {
+        return new EnvironmentVariable(
+            item.name,
+            item.value
+        );
+    }
+
+    static toJson(envVar: EnvironmentVariable): any {
+        return {
+            name: envVar.getName(),
+            value: envVar.getValue()
+        };
+    }
+}
+
+export class VolumeMount {
+    constructor(
+        private containerMountPath: string,
+        private data: string,
+        private readOnly: boolean,
+        private volumeSubPath: string,
+    ) {}
+    getContainerMountPath(): string {
+        return this.containerMountPath;
+    }
+    getData(): string {
+        return this.data;
+    }
+    getReadOnly(): boolean {
+        return this.readOnly;
+    }
+    getVolumeSubPath(): string {
+        return this.volumeSubPath;
+    }
+    setContainerMountPath(containerMountPath: string): void {
+        this.containerMountPath = containerMountPath;
+    }
+    setData(data: string): void {
+        this.data = data;
+    }
+    setReadOnly(readOnly: boolean): void {
+        this.readOnly = readOnly;
+    }
+    setVolumeSubPath(volumeSubPath: string): void {
+        this.volumeSubPath = volumeSubPath;
+    }
+    static fromJson(item: any): VolumeMount {
+        return new VolumeMount(
+            item.containerMountPath,
+            item.data,
+            item.readOnly,
+            item.volumeSubPath
+        );
+    }
+    static toJson(volumeMount: VolumeMount): any {
+        return {
+            containerMountPath: volumeMount.getContainerMountPath(),
+            data: volumeMount.getData(),
+            readOnly: volumeMount.getReadOnly(),
+            volumeSubPath: volumeMount.getVolumeSubPath()
+        };
+    }
+}
+
 export class SiteContainer {
   constructor(
     private name: string,
     private image: string,
     private targetPort?: string,
     private isMain?: boolean,
-    private authType?: string,
+    private startupCommand?: string,
+    private authType?: AUTH_TYPE,
     private userName?: string,
     private passwordSecret?: string,
-    private userManagedIdentityClientId?: string
+    private userManagedIdentityClientId?: string,
+    private type?: string,
+    private environmentVariables?: EnvironmentVariable[],
+    private volumeMounts?: VolumeMount[],
   ) {}
     getName(): string {
         return this.name;
@@ -23,7 +120,10 @@ export class SiteContainer {
     getIsMain(): boolean {
         return this.isMain ?? false;
     }   
-    getAuthType(): string | undefined {
+    getStartupCommand(): string | undefined {
+        return this.startupCommand;
+    }
+    getAuthType(): AUTH_TYPE | undefined {
         return this.authType;
     }
     getUserName(): string | undefined {
@@ -35,6 +135,15 @@ export class SiteContainer {
 
     getUserManagedIdentityClientId(): string | undefined {
         return this.userManagedIdentityClientId;
+    }
+    getType(): string | undefined {
+        return this.type;
+    }
+    getEnvironmentVariables(): EnvironmentVariable[] | undefined {
+        return this.environmentVariables;
+    }
+    getVolumeMounts(): VolumeMount[] | undefined {
+        return this.volumeMounts;
     }
     setName(name: string): void {
         this.name = name;
@@ -48,7 +157,10 @@ export class SiteContainer {
     setIsMain(isMain: boolean): void {
         this.isMain = isMain;
     }
-    setAuthType(authType: string): void {
+    setStartupCommand(startupCommand: string): void {
+        this.startupCommand = startupCommand;
+    }
+    setAuthType(authType: AUTH_TYPE): void {
         this.authType = authType;
     }
 
@@ -61,6 +173,15 @@ export class SiteContainer {
     setUserManagedIdentityClientId(userManagedIdentityClientId: string): void {
         this.userManagedIdentityClientId = userManagedIdentityClientId;
     }
+    setType(type: string): void {
+        this.type = type;
+    }
+    setEnvironmentVariables(environmentVariables: EnvironmentVariable[]): void {
+        this.environmentVariables = environmentVariables;
+    }
+    setVolumeMounts(volumeMounts: VolumeMount[]): void {
+        this.volumeMounts = volumeMounts;
+    }
 
     static fromJson(item: any): SiteContainer {
         return new SiteContainer(
@@ -68,10 +189,19 @@ export class SiteContainer {
             item.image,
             item.targetPort?.toString(),
             item.isMain ?? false,
+            item.startupCommand,
             item.authType,
             item.userName,
             item.passwordSecret,
-            item.userManagedIdentityClientId
-    );
-  }
+            item.userManagedIdentityClientId,
+            item.type,
+            item.environmentVariables?.map((env: any) => new EnvironmentVariable(env.name, env.value)),
+            item.volumeMounts?.map((mount: any) => new VolumeMount(
+                mount.containerMountPath,
+                mount.data,
+                mount.readOnly,
+                mount.volumeSubPath
+            ))
+        );
+    }
 }

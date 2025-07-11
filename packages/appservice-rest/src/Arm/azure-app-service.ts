@@ -8,7 +8,6 @@ import { WebRequest } from 'azure-actions-webclient/WebClient';
 import { getFormattedError } from './ErrorHandlerUtility';
 
 import core = require('@actions/core');
-import { SiteContainer } from './SiteContainer';
 
 
 interface AzureAppServiceConfigurationDetails {
@@ -610,24 +609,14 @@ export class AzureAppService {
         });
     }
 
-    public async updateSiteContainer(siteContainer: SiteContainer): Promise<any> {
+    public async updateSiteContainer(properties: any, siteContainerName: string): Promise<any> {
         try {
             var slotUrl: string = !!this._slot ? `/slots/${this._slot}` : '';
             var httpRequest: WebRequest = {
                 method: 'PUT',
-                body: JSON.stringify({
-                    properties: {
-                        image: siteContainer.getImage(),
-                        targetPort: siteContainer.getTargetPort(),
-                        isMain: siteContainer.getIsMain(),
-                        authType: siteContainer.getAuthType(),
-                        userName: siteContainer.getUserName(),
-                        passwordSecret: siteContainer.getPasswordSecret(),
-                        userManagedIdentityClientId: siteContainer.getUserManagedIdentityClientId()
-                    }
-                }),
+                body: JSON.stringify(properties),
                 uri: this._client.getRequestUri(
-                    `//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${slotUrl}/sitecontainers/${siteContainer.getName()}`,
+                    `//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${slotUrl}/sitecontainers/${siteContainerName}`,
                     {
                         '{resourceGroupName}': this._resourceGroup,
                         '{name}': this._name,
