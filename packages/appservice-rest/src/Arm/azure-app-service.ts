@@ -611,7 +611,6 @@ export class AzureAppService {
 
     public async updateSiteContainer(containerProperties: any, siteContainerName: string): Promise<any> {
         try {
-            core.info("properties + " + JSON.stringify(containerProperties));
             var slotUrl: string = !!this._slot ? `/slots/${this._slot}` : '';
             var httpRequest: WebRequest = {
                 method: 'PUT',

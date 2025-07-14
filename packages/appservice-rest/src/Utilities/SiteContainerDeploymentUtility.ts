@@ -23,13 +23,13 @@ export class SiteContainerDeploymentUtility {
         }
     }
 
-    private async filterProperties(siteContainer: SiteContainer): Promise<any> {
+        private async filterProperties(siteContainer: SiteContainer): Promise<any> {
         const filteredProperties = {};
 
-        const envrionmentVariablesProperties = [];
+        const environmentVariablesProperties = [];
         if (siteContainer.getEnvironmentVariables()) {
             siteContainer.getEnvironmentVariables().forEach(env => {
-                envrionmentVariablesProperties.push(EnvironmentVariable.toJson(env));
+                environmentVariablesProperties.push(EnvironmentVariable.toJson(env));
             });
         }
 
@@ -49,9 +49,7 @@ export class SiteContainerDeploymentUtility {
             userName: siteContainer.getUserName(),
             passwordSecret: siteContainer.getPasswordSecret(),
             userManagedIdentityClientId: siteContainer.getUserManagedIdentityClientId(),
-            type: siteContainer.getType(),
-            environmentVariables: envrionmentVariablesProperties,
-            volumeMounts: volumeMountsProperties
+            type: siteContainer.getType()
         };
 
         for (const key in allProperties) {
@@ -60,6 +58,15 @@ export class SiteContainerDeploymentUtility {
                 filteredProperties[key] = value;
             }
         }
+
+        if (volumeMountsProperties.length > 0) {
+            filteredProperties["volumeMounts"] = volumeMountsProperties;
+        }
+
+        if (environmentVariablesProperties.length > 0) {
+            filteredProperties["environmentVariables"] = environmentVariablesProperties;
+        }
+
         return filteredProperties;
     }
 }
