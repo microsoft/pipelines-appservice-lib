@@ -51,6 +51,37 @@ export async function archiveFolder(folderPath, targetPath, zipName) {
     return defer.promise;
 }
 
+export async function archiveFolderWithExclusions(folderPath, targetPath, zipName, excludePatterns = []) {
+    const defer = Q.defer();
+    core.debug('Archiving ' + folderPath + ' to ' + zipName);
+
+    const outputZipPath = path.join(targetPath, zipName);
+    const output = fs.createWriteStream(outputZipPath);
+    var archive = archiver('zip');
+
+    output.on('close', function () {
+        core.debug('Successfully created archive ' + zipName);
+        defer.resolve(outputZipPath);
+    });
+
+    output.on('error', function (error) {
+        defer.reject(error);
+    });
+
+    archive.pipe(output);
+
+    // Build glob pattern to include everything except excluded patterns
+    archive.glob('**/*', {
+        cwd: folderPath,
+        ignore: excludePatterns,
+        dot: true // include dotfiles like .gitignore
+    });
+
+    archive.finalize();
+
+    return defer.promise;
+}
+
 /**
  *  Returns array of files present in archived package
  */
