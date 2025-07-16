@@ -51,7 +51,7 @@ export async function archiveFolder(folderPath, targetPath, zipName) {
     return defer.promise;
 }
 
-export async function archiveFolderWithExclusions(folderPath, targetPath, zipName, excludePatterns = []) {
+export async function archiveFolderWithExcludePatterns(folderPath, targetPath, zipName, excludePatterns = []) {
     const defer = Q.defer();
     core.debug('Archiving ' + folderPath + ' to ' + zipName);
 
@@ -73,8 +73,7 @@ export async function archiveFolderWithExclusions(folderPath, targetPath, zipNam
     // Build glob pattern to include everything except excluded patterns
     archive.glob('**/*', {
         cwd: folderPath,
-        ignore: excludePatterns,
-        dot: true // include dotfiles like .gitignore
+        ignore: excludePatterns
     });
 
     archive.finalize();
