@@ -48,7 +48,8 @@ export class SiteContainerDeploymentUtility {
             authType: siteContainer.getAuthType(),
             userName: siteContainer.getUserName(),
             passwordSecret: siteContainer.getPasswordSecret(),
-            userManagedIdentityClientId: siteContainer.getUserManagedIdentityClientId()
+            userManagedIdentityClientId: siteContainer.getUserManagedIdentityClientId(),
+            inheritAppSettingsAndConnectionStrings: siteContainer.getInheritAppSettingsAndConnectionStrings()
         };
 
         for (const key in allProperties) {

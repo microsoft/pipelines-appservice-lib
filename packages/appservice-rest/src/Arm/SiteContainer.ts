@@ -95,6 +95,7 @@ export class SiteContainer {
     private userManagedIdentityClientId?: string,
     private environmentVariables?: EnvironmentVariable[],
     private volumeMounts?: VolumeMount[],
+    private inheritAppSettingsAndConnectionStrings?: boolean,
   ) {}
     getName(): string {
         return this.name;
@@ -133,6 +134,9 @@ export class SiteContainer {
     getVolumeMounts(): VolumeMount[] | undefined {
         return this.volumeMounts;
     }
+    getInheritAppSettingsAndConnectionStrings(): boolean | undefined {
+        return this.inheritAppSettingsAndConnectionStrings;
+    }
     setName(name: string): void {
         this.name = name;
     }
@@ -167,6 +171,9 @@ export class SiteContainer {
     setVolumeMounts(volumeMounts: VolumeMount[]): void {
         this.volumeMounts = volumeMounts;
     }
+    setInheritAppSettingsAndConnectionStrings(inheritAppSettingsAndConnectionStrings: boolean): void {
+        this.inheritAppSettingsAndConnectionStrings = inheritAppSettingsAndConnectionStrings;
+    }
 
     static fromJson(item: any): SiteContainer {
         return new SiteContainer(
@@ -179,6 +186,7 @@ export class SiteContainer {
             item.userName,
             item.passwordSecret,
             item.userManagedIdentityClientId,
+            item.inheritAppSettingsAndConnectionStrings,
             item.environmentVariables?.map((env: any) => new EnvironmentVariable(env.name, env.value)),
             item.volumeMounts?.map((mount: any) => new VolumeMount(
                 mount.containerMountPath,
