@@ -1,8 +1,5 @@
 import { AzureAppService } from '../Arm/azure-app-service';
 
-import fs = require('fs');
-import path = require('path');
-import core = require('@actions/core');
 import { getFormattedError } from '../Arm/ErrorHandlerUtility';
 import { SiteContainer, VolumeMount, EnvironmentVariable } from '../Arm/SiteContainer';
 

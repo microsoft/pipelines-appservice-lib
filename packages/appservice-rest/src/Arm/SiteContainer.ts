@@ -51,33 +51,33 @@ export class VolumeMount {
     getContainerMountPath(): string {
         return this.containerMountPath;
     }
-    getReadOnly(): boolean | undefined {
-        return this.readOnly;
-    }
     getVolumeSubPath(): string {
         return this.volumeSubPath;
+    }
+    getReadOnly(): boolean | undefined {
+        return this.readOnly;
     }
     setContainerMountPath(containerMountPath: string): void {
         this.containerMountPath = containerMountPath;
     }
-    setReadOnly(readOnly: boolean): void {
-        this.readOnly = readOnly;
-    }
     setVolumeSubPath(volumeSubPath: string): void {
         this.volumeSubPath = volumeSubPath;
+    }
+    setReadOnly(readOnly: boolean): void {
+        this.readOnly = readOnly;
     }
     static fromJson(item: any): VolumeMount {
         return new VolumeMount(
             item.containerMountPath,
-            item.readOnly,
-            item.volumeSubPath
+            item.volumeSubPath,
+            item.readOnly
         );
     }
     static toJson(volumeMount: VolumeMount): any {
         return {
             containerMountPath: volumeMount.getContainerMountPath(),
-            readOnly: volumeMount.getReadOnly(),
-            volumeSubPath: volumeMount.getVolumeSubPath()
+            volumeSubPath: volumeMount.getVolumeSubPath(),
+            readOnly: volumeMount.getReadOnly()
         };
     }
 }
@@ -186,13 +186,13 @@ export class SiteContainer {
             item.userName,
             item.passwordSecret,
             item.userManagedIdentityClientId,
-            item.inheritAppSettingsAndConnectionStrings,
             item.environmentVariables?.map((env: any) => new EnvironmentVariable(env.name, env.value)),
             item.volumeMounts?.map((mount: any) => new VolumeMount(
                 mount.containerMountPath,
-                mount.readOnly,
-                mount.volumeSubPath
-            ))
+                mount.volumeSubPath,
+                mount.readOnly
+            )),
+            item.inheritAppSettingsAndConnectionStrings
         );
     }
 }
