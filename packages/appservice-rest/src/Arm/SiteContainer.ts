@@ -104,13 +104,14 @@ export class SiteContainer {
         return this.image;
     }
 
+    getIsMain(): boolean {
+        return this.isMain;
+    }
+
     getTargetPort(): string | undefined {
         return this.targetPort;
     }
 
-    getIsMain(): boolean {
-        return this.isMain ?? false;
-    }   
     getStartupCommand(): string | undefined {
         return this.startupCommand;
     }
@@ -142,12 +143,12 @@ export class SiteContainer {
     }
     setImage(image: string): void {
         this.image = image;
-    }           
-    setTargetPort(targetPort: string): void {
-        this.targetPort = targetPort;
-    }
+    }    
     setIsMain(isMain: boolean): void {
         this.isMain = isMain;
+    }       
+    setTargetPort(targetPort: string): void {
+        this.targetPort = targetPort;
     }
     setStartupCommand(startupCommand: string): void {
         this.startupCommand = startupCommand;
@@ -179,8 +180,8 @@ export class SiteContainer {
         return new SiteContainer(
             item.name,
             item.image,
+            item.isMain,
             item.targetPort?.toString(),
-            item.isMain ?? false,
             item.startupCommand,
             item.authType,
             item.userName,
