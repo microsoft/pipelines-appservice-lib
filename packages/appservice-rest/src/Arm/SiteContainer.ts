@@ -51,33 +51,33 @@ export class VolumeMount {
     getContainerMountPath(): string {
         return this.containerMountPath;
     }
-    getReadOnly(): boolean | undefined {
-        return this.readOnly;
-    }
     getVolumeSubPath(): string {
         return this.volumeSubPath;
+    }
+    getReadOnly(): boolean | undefined {
+        return this.readOnly;
     }
     setContainerMountPath(containerMountPath: string): void {
         this.containerMountPath = containerMountPath;
     }
-    setReadOnly(readOnly: boolean): void {
-        this.readOnly = readOnly;
-    }
     setVolumeSubPath(volumeSubPath: string): void {
         this.volumeSubPath = volumeSubPath;
+    }
+    setReadOnly(readOnly: boolean): void {
+        this.readOnly = readOnly;
     }
     static fromJson(item: any): VolumeMount {
         return new VolumeMount(
             item.containerMountPath,
-            item.readOnly,
-            item.volumeSubPath
+            item.volumeSubPath,
+            item.readOnly
         );
     }
     static toJson(volumeMount: VolumeMount): any {
         return {
             containerMountPath: volumeMount.getContainerMountPath(),
-            readOnly: volumeMount.getReadOnly(),
-            volumeSubPath: volumeMount.getVolumeSubPath()
+            volumeSubPath: volumeMount.getVolumeSubPath(),
+            readOnly: volumeMount.getReadOnly()
         };
     }
 }
@@ -104,13 +104,14 @@ export class SiteContainer {
         return this.image;
     }
 
+    getIsMain(): boolean {
+        return this.isMain;
+    }
+
     getTargetPort(): string | undefined {
         return this.targetPort;
     }
 
-    getIsMain(): boolean {
-        return this.isMain ?? false;
-    }   
     getStartupCommand(): string | undefined {
         return this.startupCommand;
     }
@@ -142,12 +143,12 @@ export class SiteContainer {
     }
     setImage(image: string): void {
         this.image = image;
-    }           
-    setTargetPort(targetPort: string): void {
-        this.targetPort = targetPort;
-    }
+    }    
     setIsMain(isMain: boolean): void {
         this.isMain = isMain;
+    }       
+    setTargetPort(targetPort: string): void {
+        this.targetPort = targetPort;
     }
     setStartupCommand(startupCommand: string): void {
         this.startupCommand = startupCommand;
@@ -179,20 +180,20 @@ export class SiteContainer {
         return new SiteContainer(
             item.name,
             item.image,
+            item.isMain,
             item.targetPort?.toString(),
-            item.isMain ?? false,
             item.startupCommand,
             item.authType,
             item.userName,
             item.passwordSecret,
             item.userManagedIdentityClientId,
-            item.inheritAppSettingsAndConnectionStrings,
             item.environmentVariables?.map((env: any) => new EnvironmentVariable(env.name, env.value)),
             item.volumeMounts?.map((mount: any) => new VolumeMount(
                 mount.containerMountPath,
-                mount.readOnly,
-                mount.volumeSubPath
-            ))
+                mount.volumeSubPath,
+                mount.readOnly
+            )),
+            item.inheritAppSettingsAndConnectionStrings
         );
     }
 }
