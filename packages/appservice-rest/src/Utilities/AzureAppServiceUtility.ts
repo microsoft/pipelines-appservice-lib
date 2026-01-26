@@ -117,6 +117,30 @@ export class AzureAppServiceUtility {
         throw Error('KUDU SCM details are empty');
     }
 
+    /**
+     * Gets the first available instance ID for warmup cookie pinning.
+     * Used with SPN authentication to ensure all requests go to the same instance.
+     * Sorts instances by name and picks the first one (similar to az-cli behavior).
+     * @returns Instance ID string, or undefined if not available
+     */
+    public async getWarmupInstanceId(): Promise<string | undefined> {
+        try {
+            const instances = await this._appService.getInstances();
+            if (instances?.value?.length > 0) {
+                // Sort by name and pick the first one (consistent with az-cli)
+                const sortedInstances = instances.value.sort((a, b) => a.name.localeCompare(b.name));
+                const instanceId = sortedInstances[0].name;
+                core.debug(`Got warmup instance ID: ${instanceId}`);
+                return instanceId;
+            }
+            core.debug('No instances found for warmup');
+            return undefined;
+        } catch (error) {
+            core.debug(`Failed to get instances for warmup: ${error}`);
+            return undefined;
+        }
+    }
+
     public async updateConfigurationSettings(properties: any) : Promise<void> {
         for(var property in properties) {
             if(!!properties[property] && properties[property].value !== undefined) {
