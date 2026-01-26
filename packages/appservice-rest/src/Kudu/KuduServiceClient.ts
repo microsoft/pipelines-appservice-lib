@@ -11,11 +11,15 @@ export class KuduServiceClient {
     private _cookie: string[];
     private _webClient: WebClient;
 
-    constructor(scmUri: string, accessToken: string, accessTokenType: "Basic" | "Bearer") {
+    constructor(scmUri: string, accessToken: string, accessTokenType: "Basic" | "Bearer", cookie?: string[]) {
         this._accessToken = accessToken;
         this._accessTokenType = accessTokenType;
         this._scmUri = scmUri;
         this._webClient = new WebClient();
+        if (cookie) {
+            this._cookie = cookie;
+            core.debug(`initialized with affinity cookie ${JSON.stringify(this._cookie)}`);
+        }
     }
 
     public async beginRequest(request: WebRequest, reqOptions?: WebRequestOptions, contentType?: string): Promise<WebResponse> {
@@ -33,6 +37,7 @@ export class KuduServiceClient {
         while(retryCount >= 0) {
             try {
                 let httpResponse = await this._webClient.sendRequest(request, reqOptions);
+                // Capture cookie from response if not already set
                 if(httpResponse.headers['set-cookie'] && !this._cookie) {
                     this._cookie = httpResponse.headers['set-cookie'];
                     core.debug(`loaded affinity cookie ${JSON.stringify(this._cookie)}`);

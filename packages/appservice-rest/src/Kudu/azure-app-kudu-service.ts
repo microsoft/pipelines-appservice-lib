@@ -15,13 +15,50 @@ export const KUDU_DEPLOYMENT_CONSTANTS = {
 export class Kudu {
     private _client: KuduServiceClient;
 
-    constructor(scmUri: string, credentials: {username: string, password: string} | string) {
+    constructor(scmUri: string, credentials: {username: string, password: string} | string, cookie?: string[]) {
         const accessToken = typeof credentials === 'string'
             ? credentials
             : (new Buffer(credentials.username + ':' + credentials.password).toString('base64'));
         const accessTokenType = typeof credentials === 'string' ? "Bearer" : "Basic"
 
-        this._client = new KuduServiceClient(scmUri, accessToken, accessTokenType);
+        this._client = new KuduServiceClient(scmUri, accessToken, accessTokenType, cookie);
+    }
+
+    /**
+     * Warms up the Kudu service using the dedicated warmup endpoint.
+     * Uses /api/deployments?warmup=true with retry logic.
+     */
+    public async warmup(): Promise<void> {
+        var httpRequest: WebRequest = {
+            method: 'GET',
+            uri: this._client.getRequestUri(`/api/deployments`, ['warmup=true'])
+        };
+
+        const maxRetries = 3;
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                core.debug(`Kudu warmup attempt ${attempt}/${maxRetries}`);
+                let webRequestOptions: WebRequestOptions = {
+                    retriableErrorCodes: [],
+                    retriableStatusCodes: [],
+                    retryCount: 0,
+                    retryRequestTimedout: false
+                };
+                var response = await this._client.beginRequest(httpRequest, webRequestOptions);
+
+                if (response.statusCode >= 200 && response.statusCode < 300) {
+                    core.debug('Kudu warmup successful');
+                    return;
+                }
+
+                core.debug(`Kudu warmup returned status ${response.statusCode}`);
+            } catch (error) {
+                core.debug(`Kudu warmup attempt ${attempt} failed: ${error}`);
+            }
+        }
+
+        core.debug('Kudu warmup failed after all retries, proceeding without warmup');
     }
 
     public async updateDeployment(requestBody: any): Promise<string> {

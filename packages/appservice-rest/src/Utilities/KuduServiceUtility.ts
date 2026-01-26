@@ -160,15 +160,27 @@ export class KuduServiceUtility {
         }
     }
 
-    public async warmpUp(): Promise<void> {
+    /**
+     * Warms up the Kudu service using the dedicated warmup endpoint.
+     * For Publish Profile: Cookie is captured from response headers automatically.
+     * For SPN: Pass warmupInstanceId to getKuduService() to pre-set the ARRAffinity cookie.
+     */
+    public async warmUp(): Promise<void> {
         try {
             core.debug('warming up Kudu Service');
-            await this._webAppKuduService.getAppSettings();
+            await this._webAppKuduService.warmup();
             core.debug('warmed up Kudu Service');
         }
         catch(error) {
             core.debug('Failed to warm-up Kudu: ' + error.toString());
         }
+    }
+
+    /**
+     * @deprecated Use warmUp() instead. This method has a typo in the name.
+     */
+    public async warmpUp(): Promise<void> {
+        return this.warmUp();
     }
 
     private async _processDeploymentResponse(deploymentDetails: any): Promise<void> {
