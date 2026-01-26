@@ -638,7 +638,7 @@ export class AzureAppService {
         }
     }
 
-    public async getInstances(): Promise<any> {
+    public async getAppServiceInstances(): Promise<any> {
         try {
             var slotUrl: string = !!this._slot ? `/slots/${this._slot}` : '';
             var httpRequest: WebRequest = {
@@ -656,7 +656,7 @@ export class AzureAppService {
             return response.body;       
         }
         catch(error) {
-            throw Error("Failed to get instances " + this._getFormattedName() + ".\n" + getFormattedError(error));
+            throw Error("Failed to get app service instances " + this._getFormattedName() + ".\n" + getFormattedError(error));
         }
     }
 }
