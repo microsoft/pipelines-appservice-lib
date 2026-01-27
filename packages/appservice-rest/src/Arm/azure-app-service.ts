@@ -638,7 +638,7 @@ export class AzureAppService {
         }
     }
 
-    public async getAppServiceInstances(): Promise<any> {
+    public async _getAppServiceInstances(): Promise<any> {
         try {
             var slotUrl: string = !!this._slot ? `/slots/${this._slot}` : '';
             var httpRequest: WebRequest = {
