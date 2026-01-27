@@ -176,11 +176,15 @@ export class KuduServiceUtility {
         }
     }
 
-    /**
-     * @deprecated Use warmUp() instead. This method has a typo in the name.
-     */
     public async warmpUp(): Promise<void> {
-        return this.warmUp();
+        try {
+            core.debug('warming up Kudu Service');
+            await this._webAppKuduService.getAppSettings();
+            core.debug('warmed up Kudu Service');
+        }
+        catch(error) {
+            core.debug('Failed to warm-up Kudu: ' + error.toString());
+        }
     }
 
     private async _processDeploymentResponse(deploymentDetails: any): Promise<void> {
