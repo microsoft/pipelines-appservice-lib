@@ -79,11 +79,11 @@ export class AzureAppServiceUtility {
     }
 
     /**
-     * Gets a Kudu service client for deployments.
-     * @param warmupInstanceId Optional instance ID for SPN auth to pin all requests to a single instance (ARRAffinity cookie)
+     * Gets a Kudu service client for to call kudu APIs.
+     * @param warmupInstanceId Optional instance ID to pin all requests to a single instance (ARRAffinity cookie)
      */
     public async getKuduService(warmupInstanceId?: string): Promise<Kudu> {
-        // Build cookie if warmupInstanceId is provided (for SPN to pin to specific instance)
+        // Build cookie if warmupInstanceId is provided
         const cookie = warmupInstanceId 
             ? [`ARRAffinity=${warmupInstanceId}`, `ARRAffinitySameSite=${warmupInstanceId}`] 
             : undefined;
