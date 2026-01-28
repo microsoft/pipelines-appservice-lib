@@ -34,7 +34,7 @@ export class Kudu {
             uri: this._client.getRequestUri(`/api/deployments`, ['warmup=true'])
         };
 
-        const maxRetries = 3;
+        const maxRetries = 5;
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
@@ -42,7 +42,7 @@ export class Kudu {
                 let webRequestOptions: WebRequestOptions = {
                     retriableErrorCodes: [],
                     retriableStatusCodes: [],
-                    retryCount: 0,
+                    retryCount: 1,
                     retryRequestTimedout: false
                 };
                 var response = await this._client.beginRequest(httpRequest, webRequestOptions);
