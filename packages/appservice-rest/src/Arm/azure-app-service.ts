@@ -637,4 +637,26 @@ export class AzureAppService {
             throw Error("Failed to update SiteContainer " + getFormattedError(error));
         }
     }
- }
+
+    public async _getAppServiceInstances(): Promise<any> {
+        try {
+            var slotUrl: string = !!this._slot ? `/slots/${this._slot}` : '';
+            var httpRequest: WebRequest = {
+                method: 'GET',
+                uri: this._client.getRequestUri(`//subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/${slotUrl}/instances`,
+                    {
+                        '{resourceGroupName}': this._resourceGroup,
+                        '{name}': this._name,
+                    }, null, '2025-03-01')
+            }
+            var response = await this._client.beginRequest(httpRequest);
+            if(response.statusCode != 200) {
+                throw ToError(response);
+            }  
+            return response.body;       
+        }
+        catch(error) {
+            throw Error("Failed to get app service instances " + this._getFormattedName() + ".\n" + getFormattedError(error));
+        }
+    }
+}

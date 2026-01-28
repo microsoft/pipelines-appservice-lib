@@ -78,7 +78,16 @@ export class AzureAppServiceUtility {
         }
     }
 
-    public async getKuduService(): Promise<Kudu> {
+    /**
+     * Gets a Kudu service client for to call kudu APIs.
+     * @param warmupInstanceId Optional instance ID to pin all requests to a single instance (ARRAffinity cookie)
+     */
+    public async getKuduService(warmupInstanceId?: string): Promise<Kudu> {
+        // Build cookie if warmupInstanceId is provided
+        const cookie = warmupInstanceId 
+            ? [`ARRAffinity=${warmupInstanceId}`, `ARRAffinitySameSite=${warmupInstanceId}`] 
+            : undefined;
+
         try {
             const token = await this._appService.getAccessToken()
             if (!!token) {
@@ -86,7 +95,7 @@ export class AzureAppServiceUtility {
                 const app = await this._appService.get()
                 const scmUri = (app.properties["hostNameSslStates"] || []).find(n => n.hostType == "Repository");
                 if (!!scmUri) {
-                    return new Kudu(`https://${scmUri["name"]}`, token)
+                    return new Kudu(`https://${scmUri["name"]}`, token, cookie)
                 }
             }
         } catch (e) {
@@ -101,6 +110,7 @@ export class AzureAppServiceUtility {
             // masking kudu password
             console.log(`::add-mask::${password}`);
             
+            // For publish profile, don't pass cookie - it will be captured from response
             return new Kudu(publishingCredentials.properties["scmUri"], { username, password });
         }
 
@@ -164,5 +174,10 @@ export class AzureAppServiceUtility {
         }
         
         return isNewValueUpdated;
+    }
+
+    // Method to get app service instances
+    public async getAppserviceInstances(): Promise<any> {
+        return await this._appService._getAppServiceInstances();
     }
 }
