@@ -34,31 +34,23 @@ export class Kudu {
             uri: this._client.getRequestUri(`/api/deployments`, ['warmup=true'])
         };
 
-        const maxRetries = 5;
+        try {
+            core.debug(`Attempting to warmup Kudu service`);
+            
+            let webRequestOptions: WebRequestOptions = {
+                retriableErrorCodes: [],
+                retriableStatusCodes: [],
+                retryCount: 0,
+                retryRequestTimedout: false
+            };
+            
+            await this._client.beginRequest(httpRequest, webRequestOptions);
 
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                core.debug(`Kudu warmup attempt ${attempt}/${maxRetries}`);
-                let webRequestOptions: WebRequestOptions = {
-                    retriableErrorCodes: [],
-                    retriableStatusCodes: [],
-                    retryCount: 1,
-                    retryRequestTimedout: false
-                };
-                var response = await this._client.beginRequest(httpRequest, webRequestOptions);
-
-                if (response.statusCode >= 200 && response.statusCode < 300) {
-                    core.debug('Kudu warmup successful');
-                    return;
-                }
-
-                core.debug(`Kudu warmup returned status ${response.statusCode}`);
-            } catch (error) {
-                core.debug(`Kudu warmup attempt ${attempt} failed: ${error}`);
-            }
+            core.debug('Kudu warmup successful');
+        
+        } catch (error) {
+            core.debug(`Kudu warmup failed with error: ${error}`);
         }
-
-        core.debug('Kudu warmup failed after all retries, proceeding without warmup');
     }
 
     public async updateDeployment(requestBody: any): Promise<string> {
