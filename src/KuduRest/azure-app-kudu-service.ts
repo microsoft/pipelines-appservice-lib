@@ -61,6 +61,53 @@ export class Kudu {
         }
     }
 
+    public async setAppSettings(requestBody: any): Promise<Map<string, string>> {
+        var httpRequest: webClient.WebRequest = {
+            method: 'POST',
+            body: JSON.stringify(requestBody),
+            uri: this._client.getRequestUri(`/api/settings`)
+        };
+
+        try {
+            var response = await this._client.beginRequest(httpRequest);
+            console.log(`##[debug]setAppSettings. Data: ${JSON.stringify(response)}`);
+            if(response.statusCode == 204) {
+                return response.body;
+            }
+
+            throw response;
+        }
+        catch(error) {
+            if(error && error.message && typeof error.message.valueOf() == 'string') {
+                error.message = "Failed to create or update Kudu App Settings.\n" + error.message;
+            }
+            throw error;
+        }
+    }
+
+    public async deleteAppSetting(appSetting: string): Promise<Map<string, string>> {
+        var httpRequest: webClient.WebRequest = {
+            method: 'DELETE',
+            uri: this._client.getRequestUri(`/api/settings/${appSetting}`)
+        };
+
+        try {
+            var response = await this._client.beginRequest(httpRequest);
+            console.log(`##[debug]deleteAppSetting. AppSetting: ${appSetting}`);
+            if(response.statusCode == 204) {
+                return response.body;
+            }
+
+            throw response;
+        }
+        catch(error) {
+            if(error && error.message && typeof error.message.valueOf() == 'string') {
+                error.message = "Failed to delete Kudu App Setting.\n" + error.message;
+            }
+            throw error;
+        }
+    }
+
     public async runCommand(physicalPath: string, command: string): Promise<void> {
         var httpRequest: webClient.WebRequest = {
             method: 'POST',
