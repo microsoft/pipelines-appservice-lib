@@ -23,6 +23,10 @@ export class AzureCLIAuthorizer implements IAuthorizer{
         return this._cloudEndpoints['resourceManager'] || 'https://management.azure.com/';
     }
 
+    public get environment(): string {
+        return this._environment;
+    }
+
     public getCloudSuffixUrl(suffixName: string): string {
         return this._cloudSuffixes[suffixName];
     }
@@ -86,12 +90,14 @@ export class AzureCLIAuthorizer implements IAuthorizer{
         let azCloudDetails = JSON.parse(await AzureCLIAuthorizer.executeAzCliCommand('cloud show'));
 
         this._subscriptionId = azAccountDetails['id'];
+        this._environment = azCloudDetails['name'];
         this._cloudSuffixes = azCloudDetails['suffixes'];
         this._cloudEndpoints = azCloudDetails['endpoints'];
     }
 
     private _token: string = '';
     private _subscriptionId: string = '';
+    private _environment: string = '';
     private _cloudSuffixes: {[key: string]: string} = {};
     private _cloudEndpoints: {[key: string]: string} = {};
     private static _azCliPath: string;
