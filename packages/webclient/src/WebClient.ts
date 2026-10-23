@@ -48,7 +48,19 @@ export class WebClient {
 
         while (true) {
             try {
-                if (request.body && typeof(request.body) !== 'string' && !request.body["readable"]) {
+                if (request.body instanceof fs.ReadStream &&
+                    (typeof request.body.path === 'string' || Buffer.isBuffer(request.body.path)) &&
+                    (i > 0 || !request.body.readable)) {
+                    const previous = request.body;
+                    const streamOptions = {
+                        start: previous["start"],
+                        end: previous["end"],
+                        encoding: previous.readableEncoding,
+                        highWaterMark: previous.readableHighWaterMark
+                    };
+                    previous.destroy();
+                    request.body = fs.createReadStream(previous.path, streamOptions);
+                } else if (request.body && typeof(request.body) !== 'string' && !request.body["readable"]) {
                     request.body = fs.createReadStream((request as any).body["path"]);
                 }
 
