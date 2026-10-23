@@ -23,12 +23,12 @@ function readBody(body: Readable): Promise<Buffer> {
     });
 }
 
-function consumePrefix(body: Readable): Promise<void> {
+function consumePrefix(body: Readable): Promise<Buffer> {
     return new Promise((resolve, reject) => {
         body.once('error', reject);
-        body.once('data', () => {
+        body.once('data', chunk => {
             body.pause();
-            resolve();
+            resolve(Buffer.from(chunk));
         });
         body.resume();
     });
@@ -84,6 +84,12 @@ describe('file request retries', () => {
     test('resends the complete file after an early HTTP rejection', async () => {
         let attempts = 0;
         let received: Buffer;
+        const original = openFile();
+        let firstAttemptBytesRead: number;
+        let firstAttemptReadable: boolean;
+        let rejectedAt: [number, number];
+        let retryDelayMs: number;
+        let serverError: Error;
         const sockets: Socket[] = [];
         const server = http.createServer((request, result) => {
             attempts++;
@@ -93,27 +99,43 @@ describe('file request retries', () => {
                 request.on('data', chunk => {
                     bytes += chunk.length;
                     if (bytes >= 1024 * 1024 && !result.headersSent) {
+                        original.pause();
+                        firstAttemptBytesRead = original.bytesRead;
+                        firstAttemptReadable = original.readable;
+                        rejectedAt = process.hrtime();
                         result.writeHead(503, { Connection: 'close' });
                         result.end('{}');
                     }
                 });
             } else {
+                const elapsed = process.hrtime(rejectedAt);
+                retryDelayMs = elapsed[0] * 1000 + elapsed[1] / 1000000;
                 readBody(request).then(body => {
                     received = body;
                     result.end('{}');
+                }).catch(error => {
+                    serverError = error;
+                    result.destroy(error);
                 });
             }
         });
         server.on('connection', socket => sockets.push(socket));
-        await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
+        await new Promise<void>((resolve, reject) => {
+            server.once('error', reject);
+            server.listen(0, '127.0.0.1', resolve);
+        });
         const client = new WebClient();
-        (client as any)._sleep = async () => {};
         try {
             const result = await client.sendRequest({
                 method: 'POST',
                 uri: `http://127.0.0.1:${(server.address() as AddressInfo).port}/publish`,
-                body: openFile()
+                body: original
             }, { retryCount: 2 });
+            expect(serverError).toBeUndefined();
+            expect(firstAttemptBytesRead).toBeGreaterThan(0);
+            expect(firstAttemptBytesRead).toBeLessThan(contents.length);
+            expect(firstAttemptReadable).toBe(true);
+            expect(retryDelayMs).toBeGreaterThanOrEqual(1900);
             expect(result.statusCode).toBe(200);
             expect(attempts).toBe(2);
             expect(received.length).toBe(contents.length);
@@ -164,16 +186,18 @@ describe('file request retries', () => {
 
     test('stops at the configured attempt budget', async () => {
         const streams: fs.ReadStream[] = [];
+        const prefixes: Buffer[] = [];
         const request = jest.fn(async (_method, _uri, body) => {
+            expect(streams.every(stream => stream.destroyed)).toBe(true);
             streams.push(body);
-            await consumePrefix(body);
+            prefixes.push(await consumePrefix(body));
             return response(503);
         });
         const result = await clientWithTransport(request).sendRequest({ method: 'POST', uri: 'https://example.invalid', body: openFile({ highWaterMark: 64 }) }, { retryCount: 3 });
         expect(result.statusCode).toBe(503);
         expect(request).toHaveBeenCalledTimes(3);
-        expect(new Set(streams).size).toBe(3);
-        streams.forEach(stream => stream.destroy());
+        expect(prefixes).toHaveLength(3);
+        prefixes.forEach(prefix => expect(prefix.equals(contents.slice(0, 64))).toBe(true));
     });
 
     test('retains an intact descriptor-backed stream when retrying before consumption', async () => {
@@ -188,6 +212,53 @@ describe('file request retries', () => {
         const result = await clientWithTransport(request).sendRequest({ method: 'POST', uri: 'https://example.invalid', body: original }, { retryCount: 2 });
         expect(result.statusCode).toBe(200);
         expect(request).toHaveBeenCalledTimes(2);
+    });
+
+    test('reopens an exhausted file body on the first attempt', async () => {
+        const original = openFile({ start: 17, end: 8192, encoding: 'hex' });
+        await readBody(original);
+        expect(original.readable).toBe(false);
+        const request = jest.fn(async (_method, _uri, body) => {
+            const received = await readBody(body);
+            expect(received.equals(Buffer.from(contents.slice(17, 8193).toString('hex')))).toBe(true);
+            return response(200);
+        });
+        const result = await clientWithTransport(request).sendRequest({ method: 'POST', uri: 'https://example.invalid', body: original });
+        expect(result.statusCode).toBe(200);
+        expect(request).toHaveBeenCalledTimes(1);
+    });
+
+    test('passes an ordinary readable body through the first attempt', async () => {
+        const payload = contents.slice(0, 257);
+        const original = Readable.from([payload]);
+        const request = jest.fn(async (_method, _uri, body) => {
+            expect(body).toBe(original);
+            expect((await readBody(body)).equals(payload)).toBe(true);
+            return response(200);
+        });
+        const result = await clientWithTransport(request).sendRequest({ method: 'POST', uri: 'https://example.invalid', body: original });
+        expect(result.statusCode).toBe(200);
+        expect(request).toHaveBeenCalledTimes(1);
+    });
+
+    test('passes a bodyless request through the first attempt', async () => {
+        const request = jest.fn(async (_method, _uri, body) => {
+            expect(body).toBe('');
+            return response(200);
+        });
+        const result = await clientWithTransport(request).sendRequest({ method: 'GET', uri: 'https://example.invalid' });
+        expect(result.statusCode).toBe(200);
+        expect(request).toHaveBeenCalledTimes(1);
+    });
+
+    test('rejects a permanent transport error after one attempt', async () => {
+        const failure = Object.assign(new Error('permission denied'), { code: 'EACCES' });
+        const request = jest.fn(async (_method, _uri, body) => {
+            await consumePrefix(body);
+            throw failure;
+        });
+        await expect(clientWithTransport(request).sendRequest({ method: 'POST', uri: 'https://example.invalid', body: openFile({ highWaterMark: 64 }) })).rejects.toBe(failure);
+        expect(request).toHaveBeenCalledTimes(1);
     });
 
     test('returns permanent failures after one attempt', async () => {
